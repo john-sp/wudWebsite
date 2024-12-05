@@ -252,6 +252,26 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           description: Game not found.
+  /games/download-csv:
+    get:
+      summary: Download the database as a CSV file
+      description: Generates and downloads a CSV file containing all board games in the database.
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: CSV file successfully generated and downloaded.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /games/{id}/checkout:
     post:
       operationId: checkoutGame
@@ -267,13 +287,49 @@ paths:
         - Host
       security:
         - bearerAuth: []
+
       responses:
         '200':
-          description: The game was successfully checked out.
+          description: Game checked out successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: Game checked out successfully.
         '401':
           $ref: "#/components/responses/Unauthorized"
         '403':
           $ref: "#/components/responses/Forbidden"
+  /games/{id}/return:
+    post:
+      summary: Return a game
+      description: Increment the available copies of the game.
+      tags:
+        - Host
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game.
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Game returned successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: Game returned successfully.
+        '404':
+          description: Game not found.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 #  /steam-game:
 #    get:
 #      summary: Retrieve a list of games

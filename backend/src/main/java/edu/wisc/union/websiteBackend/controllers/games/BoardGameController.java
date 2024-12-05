@@ -4,14 +4,21 @@ import edu.wisc.union.websiteBackend.auth.JwtUtil;
 import edu.wisc.union.websiteBackend.exception.InputErrorException;
 import edu.wisc.union.websiteBackend.jpa.BoardGame;
 import edu.wisc.union.websiteBackend.jpa.BoardGameRepository;
-import jakarta.annotation.PostConstruct;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.OpenApiResourceNotFoundException;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -153,5 +160,77 @@ public class BoardGameController {
         GameDTO updatedGame = new GameDTO();
         BeanUtils.copyProperties(game, updatedGame);
         return ResponseEntity.ok(updatedGame);
+    }
+
+    @PostMapping("/{id}/checkout")
+    @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
+    public ResponseEntity<String> checkoutGame(@PathVariable Long id) {
+        BoardGame game = boardGameRepository.findById(id)
+                .orElseThrow(() -> new OpenApiResourceNotFoundException("Game not found with ID: " + id));
+
+        if (game.getAvailableCopies() <= 0) {
+            throw new InputErrorException("A105", "No copies available for checkout.");
+        }
+
+        game.setAvailableCopies(game.getAvailableCopies() - 1);
+        game.setCheckoutCount(game.getCheckoutCount() + 1);
+        boardGameRepository.save(game);
+
+        return ResponseEntity.ok("Game checked out successfully.");
+    }
+
+    @PostMapping("/{id}/return")
+    @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
+    public ResponseEntity<String> returnGame(@PathVariable Long id) {
+        BoardGame game = boardGameRepository.findById(id)
+                .orElseThrow(() -> new OpenApiResourceNotFoundException("Game not found with ID: " + id));
+
+        if (game.getAvailableCopies() >= game.getQuantity())
+            throw new InputErrorException("A107", "Cannot return game, all games already returned");
+        game.setAvailableCopies(game.getAvailableCopies() + 1);
+        boardGameRepository.save(game);
+
+        return ResponseEntity.ok("Game returned successfully.");
+    }
+
+    @GetMapping("/download-csv")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> downloadCsv() {
+        List<BoardGame> games = boardGameRepository.findAll();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(
+                     "ID", "Name", "Min Playtime", "Max Playtime", "Min Players", "Max Players",
+                     "Available Copies", "Genre", "Box Art URL", "Description", "Quantity",
+                     "Checkout Count", "Internal Notes"
+             ))) {
+
+            for (BoardGame game : games) {
+                csvPrinter.printRecord(
+                        game.getId(),
+                        game.getName(),
+                        game.getMinPlaytime(),
+                        game.getMaxPlaytime(),
+                        game.getMinPlayers(),
+                        game.getMaxPlayers(),
+                        game.getAvailableCopies(),
+                        game.getGenre(),
+                        game.getBoxArtUrl(),
+                        game.getDescription(),
+                        game.getQuantity(),
+                        game.getCheckoutCount(),
+                        game.getInternalNotes()
+                );
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating CSV", e);
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=boardgames.csv")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(outputStream.toByteArray());
     }
 }

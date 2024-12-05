@@ -20,9 +20,11 @@ public class BoardGame {
     private Integer maxPlaytime;
     private Integer minPlayers;
     private Integer maxPlayers;
+    private Integer availableCopies;
     private String genre;
     private String boxArtUrl;
     private String description;
+    private Integer quantity;
     private Integer checkoutCount;
     private String internalNotes;
 
