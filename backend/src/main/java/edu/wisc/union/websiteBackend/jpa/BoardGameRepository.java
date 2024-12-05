@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface BoardGameRepository extends JpaRepository<BoardGame, String> {
+public interface BoardGameRepository extends JpaRepository<BoardGame, Long> {
     @Query("SELECT b FROM BoardGame b WHERE " +
             "(:name IS NULL OR LOWER(b.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
             "(:minPlayTime IS NULL OR b.minPlaytime >= :minPlayTime) AND " +

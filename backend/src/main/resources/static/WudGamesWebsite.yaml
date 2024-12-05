@@ -7,21 +7,22 @@ info:
     Notes on security levels:
     1) Unauthenticated: read only access to game library search tools
     2) Host: adds access to physical game checkout, adds internal notes
-    3) Exec: Full access to read write everything
+    3) Admin: Full access to read write everything
   version: 1.0.0
 tags:
   - name: Unauthenticated
     description: Calls that any client can make
   - name: Host
     description: Calls that require authentication
-  - name: Exec
-    description: Calls that only the exec can make
+  - name: Admin
+    description: Calls that only the admins can make can make
 
 servers:
   - url: 'http://wudgames.minecraft.best:8080'
 paths:
   /auth/login:
     post:
+      operationId: loginUser
       summary: Authenticate a user
       description: Log in a user and issue a bearer token for subsequent requests.
       tags:
@@ -66,6 +67,7 @@ paths:
           description: Invalid credentials.
   /games:
     get:
+      operationId: getGames
       summary: Retrieve a list of games
       description: Retrieve all games or filter games based on criteria.
       tags:
@@ -115,9 +117,10 @@ paths:
                   $ref: '#/components/schemas/Game'
     post:
       summary: Add a new game
+      operationId: addGame
       description: Add a new game to the collection.
       tags:
-        - Exec
+        - Admin
       security:
         - bearerAuth: []
       requestBody:
@@ -129,6 +132,14 @@ paths:
       responses:
         '201':
           description: The game was successfully created.
+        '400':
+          description: Bad Request
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+
+
   /games/{id}:
     parameters:
       - name: id
@@ -138,8 +149,9 @@ paths:
           type: string
     put:
       summary: Update an existing game
+      operationId: updateGame
       tags:
-        - Exec
+        - Admin
       description: Edit the details of an existing game.
       security:
         - bearerAuth: []
@@ -152,18 +164,97 @@ paths:
       responses:
         '200':
           description: The game was successfully updated.
+        '400':
+          description: Bad Request
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/Forbidden"
     delete:
+      operationId: deleteGame
       summary: Delete a game
       tags:
-        - Exec
+        - Admin
       description: Remove a game from the collection.
       security:
         - bearerAuth: []
       responses:
         '204':
           description: The game was successfully deleted.
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+    get:
+      summary: Retrieve a game by ID
+      description: Get the details of a specific game by its ID.
+      tags:
+        - Unauthenticated
+      responses:
+        '200':
+          description: The requested game details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Game not found.
+    patch:
+      summary: Update specific fields of a game
+      description: Update specific fields of an existing game. Only the fields provided in the request body will be updated.
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: A JSON object containing the fields to update.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the game.
+                  example: Updated Game Name
+                minPlayTime:
+                  type: integer
+                  description: The updated minimum playtime in hours.
+                  minimum: 0
+                  example: 30
+                maxPlayTime:
+                  type: integer
+                  description: The updated maximum playtime in hours.
+                  minimum: 0
+                  example: 120
+                genre:
+                  type: string
+                  description: The updated genre of the game.
+                  example: Strategy
+                playerCount:
+                  type: integer
+                  description: The updated number of players required.
+                  minimum: 1
+                  example: 4
+      responses:
+        '200':
+          description: The updated game details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid input data.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Game not found.
   /games/{id}/checkout:
     post:
+      operationId: checkoutGame
       parameters:
         - in: path
           name: id
@@ -179,275 +270,291 @@ paths:
       responses:
         '200':
           description: The game was successfully checked out.
-  /steam-game:
-    get:
-      summary: Retrieve a list of games
-      description: Retrieve all games or filter games based on criteria.
-      tags:
-        - Unauthenticated
-      parameters:
-        - name: name
-          in: query
-          description: Filter by game name.
-          required: false
-          schema:
-            type: string
-        - name: genre
-          in: query
-          description: Filter by genre.
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: A list of games matching the criteria.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SteamGame'
-    post:
-      summary: Add a new Steam game
-      description: Add a new game to the Steam game collection.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SteamGame'
-      responses:
-        '201':
-          description: The game was successfully added.
-  /steam-game/{id}:
-    put:
-      summary: Update a Steam game
-      description: Edit the details of an existing Steam game.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            description: The unique identifier of the Steam game to update.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SteamGame'
-      responses:
-        '200':
-          description: The game was successfully updated.
-    delete:
-      summary: Remove a Steam game
-      description: Delete a game from the Steam game collection.
-      tags:
-        - Exec
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            description: The unique identifier of the Steam game to delete.
-      responses:
-        '204':
-          description: The game was successfully removed.
-  /steam-account/checkout:
-    post:
-      summary: Request to checkout a Steam account
-      description: Submit a request to checkout a Steam account.
-      tags:
-        - Exec
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SteamAccountRequest'
-      responses:
-        '200':
-          description: The request was successfully submitted.
-  /steam-account/requests:
-    get:
-      summary: Get steam account requests
-      description: Gets current steam account requests.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: includeHistory
-          required: false
-          schema:
-            type: boolean
-            description: Should steam accounts from the past be included
-      responses:
-        '200':
-          description: The request was successfully approved.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SteamAccountRequestWithStatus'
-  /steam-account/requests/{id}/approve:
-    post:
-      summary: Approve a Steam account checkout request
-      description: Approve a request to checkout a Steam account and specify the account ID to assign.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            description: The ID of the checkout request to approve.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                accountId:
-                  type: integer
-                  description: The ID of the Steam account to assign.
-                  example: 2
-      responses:
-        '200':
-          description: The request was successfully approved.
-  /steam-account/requests/{id}/deny:
-    post:
-      summary: Deny a Steam account checkout request
-      description: Deny a request to checkout a Steam account.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            description: The ID of the checkout request to deny.
-      responses:
-        '200':
-          description: The request was successfully denied.
-  /console-game:
-    get:
-      summary: Retrieve a list of games
-      description: Retrieve all games or filter games based on criteria.
-      tags:
-        - Unauthenticated
-      parameters:
-        - name: name
-          in: query
-          description: Filter by game name.
-          required: false
-          schema:
-            type: string
-        - name: minPlaytime
-          in: query
-          description: Filter by minimum playtime (in hours).
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-        - name: maxPlaytime
-          in: query
-          description: Filter by maximum playtime (in hours).
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-        - name: genre
-          in: query
-          description: Filter by genre.
-          required: false
-          schema:
-            type: string
-        - name: playerCount
-          in: query
-          description: Filter by player count.
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-      responses:
-        '200':
-          description: A list of games matching the criteria.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ConsoleGame'
-    post:
-      summary: Add a new game
-      description: Add a new game to the collection.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConsoleGame'
-      responses:
-        '201':
-          description: The game was successfully created.
-  /console-game/{id}:
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-    put:
-      summary: Update an existing game
-      description: Edit the details of an existing game.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConsoleGame'
-      responses:
-        '200':
-          description: The game was successfully updated.
-    delete:
-      summary: Delete a game
-      description: Remove a game from the collection.
-      tags:
-        - Exec
-      security:
-        - bearerAuth: []
-      responses:
-        '204':
-          description: The game was successfully deleted. 
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+#  /steam-game:
+#    get:
+#      summary: Retrieve a list of games
+#      description: Retrieve all games or filter games based on criteria.
+#      tags:
+#        - Unauthenticated
+#      parameters:
+#        - name: name
+#          in: query
+#          description: Filter by game name.
+#          required: false
+#          schema:
+#            type: string
+#        - name: genre
+#          in: query
+#          description: Filter by genre.
+#          required: false
+#          schema:
+#            type: string
+#      responses:
+#        '200':
+#          description: A list of games matching the criteria.
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  $ref: '#/components/schemas/SteamGame'
+#    post:
+#      summary: Add a new Steam game
+#      description: Add a new game to the Steam game collection.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/SteamGame'
+#      responses:
+#        '201':
+#          description: The game was successfully added.
+#  /steam-game/{id}:
+#    put:
+#      summary: Update a Steam game
+#      description: Edit the details of an existing Steam game.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      parameters:
+#        - name: id
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#            description: The unique identifier of the Steam game to update.
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/SteamGame'
+#      responses:
+#        '200':
+#          description: The game was successfully updated.
+#    delete:
+#      summary: Remove a Steam game
+#      description: Delete a game from the Steam game collection.
+#      tags:
+#        - Admin
+#      parameters:
+#        - name: id
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#            description: The unique identifier of the Steam game to delete.
+#      responses:
+#        '204':
+#          description: The game was successfully removed.
+#  /steam-account/checkout:
+#    post:
+#      summary: Request to checkout a Steam account
+#      description: Submit a request to checkout a Steam account.
+#      tags:
+#        - Admin
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/SteamAccountRequest'
+#      responses:
+#        '200':
+#          description: The request was successfully submitted.
+#  /steam-account/requests:
+#    get:
+#      summary: Get steam account requests
+#      description: Gets current steam account requests.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      parameters:
+#        - in: query
+#          name: includeHistory
+#          required: false
+#          schema:
+#            type: boolean
+#            description: Should steam accounts from the past be included
+#      responses:
+#        '200':
+#          description: The request was successfully approved.
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  $ref: '#/components/schemas/SteamAccountRequestWithStatus'
+#  /steam-account/requests/{id}/approve:
+#    post:
+#      summary: Approve a Steam account checkout request
+#      description: Approve a request to checkout a Steam account and specify the account ID to assign.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      parameters:
+#        - name: id
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#            description: The ID of the checkout request to approve.
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                accountId:
+#                  type: integer
+#                  description: The ID of the Steam account to assign.
+#                  example: 2
+#      responses:
+#        '200':
+#          description: The request was successfully approved.
+#  /steam-account/requests/{id}/deny:
+#    post:
+#      summary: Deny a Steam account checkout request
+#      description: Deny a request to checkout a Steam account.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      parameters:
+#        - name: id
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#            description: The ID of the checkout request to deny.
+#      responses:
+#        '200':
+#          description: The request was successfully denied.
+#  /console-game:
+#    get:
+#      summary: Retrieve a list of games
+#      description: Retrieve all games or filter games based on criteria.
+#      tags:
+#        - Unauthenticated
+#      parameters:
+#        - name: name
+#          in: query
+#          description: Filter by game name.
+#          required: false
+#          schema:
+#            type: string
+#        - name: minPlaytime
+#          in: query
+#          description: Filter by minimum playtime (in hours).
+#          required: false
+#          schema:
+#            type: integer
+#            minimum: 0
+#        - name: maxPlaytime
+#          in: query
+#          description: Filter by maximum playtime (in hours).
+#          required: false
+#          schema:
+#            type: integer
+#            minimum: 0
+#        - name: genre
+#          in: query
+#          description: Filter by genre.
+#          required: false
+#          schema:
+#            type: string
+#        - name: playerCount
+#          in: query
+#          description: Filter by player count.
+#          required: false
+#          schema:
+#            type: integer
+#            minimum: 1
+#      responses:
+#        '200':
+#          description: A list of games matching the criteria.
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  $ref: '#/components/schemas/ConsoleGame'
+#    post:
+#      summary: Add a new game
+#      description: Add a new game to the collection.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/ConsoleGame'
+#      responses:
+#        '201':
+#          description: The game was successfully created.
+#        '401':
+#          $ref: "#/components/responses/Unauthorized"
+#        '403':
+#          $ref: "#/components/responses/Forbidden"
+#        '400':
+#          description: Bad Request
+#  /console-game/{id}:
+#    parameters:
+#      - name: id
+#        in: path
+#        required: true
+#        schema:
+#          type: string
+#    put:
+#      summary: Update an existing game
+#      description: Edit the details of an existing game.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/ConsoleGame'
+#      responses:
+#        '200':
+#          description: The game was successfully updated.
+#        '401':
+#            $ref: "#/components/responses/Forbidden"
+#    delete:
+#      summary: Delete a game
+#      description: Remove a game from the collection.
+#      tags:
+#        - Admin
+#      security:
+#        - bearerAuth: []
+#      responses:
+#        '204':
+#          description: The game was successfully deleted.
+#        '401':
+#          $ref: "#/components/responses/Unauthorized"
+#        '403':
+#          $ref: "#/components/responses/Forbidden"
   # /vrwaver/:
-  
+
 components:
   schemas:
     Game:
@@ -489,105 +596,110 @@ components:
         internalNotes:
           type: string
           description: Internal notes, only sent to people with host login or above
-    SteamGame:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the game.
-        name:
-          type: string
-          description: Name of the game.
-        genre:
-          type: string
-          description: Genre of the game.
-        SteamAccounts:
-          type: array
-          items:
-            type: integer
-          description: Steam accounts that own this game
-    SteamAccountRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          description: The email address of the user making the request.
-        name:
-          type: string
-          description: The name of the user making the request.
-        gameName:
-          type: string
-          nullable: true
-          description: The name of the game the user wants to play.
-        steamGameId:
-          type: string
-          nullable: true
-          description: The name of the game the user wants to play.
-        startDay:
-          type: string
-          format: date
-          description: The start day of the rental.
-        comments:
-          type: string
-          nullable: true
-          description: Any additional comments or notes.
-    SteamAccountRequestWithStatus:
-      allOf:
-        - $ref: '#/components/schemas/SteamAccountRequest'
-        - type: object
-          properties:
-            id:
-              type: string
-              description: The unique identifier of the request.
-            status:
-              type: string
-              enum: [Pending, Approved, Denied]
-              description: The current status of the request.
-            suggestedAccountId:
-              type: integer
-              nullable: true
-              description: The suggested ID of the Steam account if the request is approved.
-            availableSteamAccounts:
-              type: array
-              nullable: true
-              items:
-                type: integer
-              description: The available steam accounts during that time
-            ownedSteamAccounts:
-              type: array
-              nullable: true
-              items:
-                type: integer
-              description: The steam accounts that own the game
-            allSteamAccounts:
-              type: array
-              items:
-                type: integer
-              description: The all steam accounts
-            assignedAccountId:
-              type: integer
-              nullable: true
-              description: The ID of the assigned Steam account if the request is approved.
-    ConsoleGame:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the game.
-        name:
-          type: string
-          description: Name of the game.
-        playtime:
-          type: integer
-          description: Average playtime of the game in hours.
-        genre:
-          type: string
-          description: Genre of the game.
-        playerCount:
-          type: integer
-          description: Number of players supported by the game.
+#    SteamGame:
+#      type: object
+#      properties:
+#        id:
+#          type: string
+#          description: Unique identifier for the game.
+#        name:
+#          type: string
+#          description: Name of the game.
+#        genre:
+#          type: string
+#          description: Genre of the game.
+#        SteamAccounts:
+#          type: array
+#          items:
+#            type: integer
+#          description: Steam accounts that own this game
+#    SteamAccountRequest:
+#      type: object
+#      properties:
+#        email:
+#          type: string
+#          description: The email address of the user making the request.
+#        name:
+#          type: string
+#          description: The name of the user making the request.
+#        gameName:
+#          type: string
+#          nullable: true
+#          description: The name of the game the user wants to play.
+#        steamGameId:
+#          type: string
+#          nullable: true
+#          description: The name of the game the user wants to play.
+#        startDay:
+#          type: string
+#          format: date
+#          description: The start day of the rental.
+#        comments:
+#          type: string
+#          nullable: true
+#          description: Any additional comments or notes.
+#    SteamAccountRequestWithStatus:
+#      allOf:
+#        - $ref: '#/components/schemas/SteamAccountRequest'
+#        - type: object
+#          properties:
+#            id:
+#              type: string
+#              description: The unique identifier of the request.
+#            status:
+#              type: string
+#              enum: [Pending, Approved, Denied]
+#              description: The current status of the request.
+#            suggestedAccountId:
+#              type: integer
+#              nullable: true
+#              description: The suggested ID of the Steam account if the request is approved.
+#            availableSteamAccounts:
+#              type: array
+#              nullable: true
+#              items:
+#                type: integer
+#              description: The available steam accounts during that time
+#            ownedSteamAccounts:
+#              type: array
+#              nullable: true
+#              items:
+#                type: integer
+#              description: The steam accounts that own the game
+#            allSteamAccounts:
+#              type: array
+#              items:
+#                type: integer
+#              description: The all steam accounts
+#            assignedAccountId:
+#              type: integer
+#              nullable: true
+#              description: The ID of the assigned Steam account if the request is approved.
+#    ConsoleGame:
+#      type: object
+#      properties:
+#        id:
+#          type: string
+#          description: Unique identifier for the game.
+#        name:
+#          type: string
+#          description: Name of the game.
+#        playtime:
+#          type: integer
+#          description: Average playtime of the game in hours.
+#        genre:
+#          type: string
+#          description: Genre of the game.
+#        playerCount:
+#          type: integer
+#          description: Number of players supported by the game.
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Not authenticated
+    Forbidden:
+      description: Missing required roles

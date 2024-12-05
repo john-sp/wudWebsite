@@ -9,9 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController()
@@ -19,13 +22,6 @@ import java.util.List;
 public class BoardGameController {
     private final BoardGameRepository boardGameRepository;
     private final JwtUtil jwtUtil;
-
-
-    @PostConstruct
-    public void init()
-    {
-        log.info("Spring boot application running in");
-    }
 
     public BoardGameController(BoardGameRepository boardGameRepository, JwtUtil jwtUtil) {
         this.boardGameRepository = boardGameRepository;
@@ -66,5 +62,96 @@ public class BoardGameController {
         gameObj = boardGameRepository.save(gameObj);
         game.setId(gameObj.getId());
         return ResponseEntity.status(201).body(game);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GameDTO> updateGame(@PathVariable Long id, @RequestBody GameDTO game) {
+        // Check if the game exists
+        BoardGame existingGame = boardGameRepository.findById(id)
+                .orElseThrow(() -> new InputErrorException("A105", "Game not found with ID: " + id));
+
+        // Validate the updated fields
+        if (game.getName() == null || game.getName().isBlank()) {
+            throw new InputErrorException("A103", "The 'name' field is required and cannot be empty or blank.");
+        }
+        if (!existingGame.getName().equalsIgnoreCase(game.getName()) &&
+                boardGameRepository.existsByNameIgnoreCase(game.getName())) {
+            throw new InputErrorException("A104", "A game with that name already exists.");
+        }
+
+        // Update the game object
+        BeanUtils.copyProperties(game, existingGame, "id"); // Exclude ID from being copied
+        existingGame = boardGameRepository.save(existingGame);
+
+        // Return the updated game
+        GameDTO updatedGame = new GameDTO();
+        BeanUtils.copyProperties(existingGame, updatedGame);
+        return ResponseEntity.ok(updatedGame);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
+        // Check if the game exists
+        if (!boardGameRepository.existsById(id)) {
+            throw new InputErrorException("A105", "Game not found with ID: " + id);
+        }
+
+        // Delete the game
+        boardGameRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GameDTO> getGameById(@PathVariable Long id) {
+        // Retrieve the game by ID
+        BoardGame game = boardGameRepository.findById(id)
+                .orElseThrow(() -> new InputErrorException("A105", "Game not found with ID: " + id));
+
+        // Convert to DTO
+        GameDTO gameDTO = new GameDTO();
+        BeanUtils.copyProperties(game, gameDTO);
+
+        // Remove sensitive fields if the user is anonymous
+        if (jwtUtil.getCurrentAccessLevel().equals(JwtUtil.AccessLevel.ANONYMOUS)) {
+            gameDTO.setInternalNotes(null);
+        }
+
+        return ResponseEntity.ok(gameDTO);
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GameDTO> patchGame(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        // Check if the game exists
+        BoardGame game = boardGameRepository.findById(id)
+                .orElseThrow(() -> new InputErrorException("A105", "Game not found with ID: " + id));
+
+        // Apply updates
+        updates.forEach((key, value) -> {
+            Field field = ReflectionUtils.findField(BoardGame.class, key);
+            if (field != null) {
+                field.setAccessible(true);
+                ReflectionUtils.setField(field, game, value);
+            }
+        });
+
+        // Validate the updated fields
+        if (game.getName() == null || game.getName().isBlank()) {
+            throw new InputErrorException("A103", "The 'name' field is required and cannot be empty or blank.");
+        }
+        if (boardGameRepository.existsByNameIgnoreCase(game.getName()) &&
+                !game.getId().equals(id)) { // Ensure it's not the same game
+            throw new InputErrorException("A104", "A game with that name already exists.");
+        }
+
+        // Save the updated game
+        boardGameRepository.save(game);
+
+        // Convert to DTO
+        GameDTO updatedGame = new GameDTO();
+        BeanUtils.copyProperties(game, updatedGame);
+        return ResponseEntity.ok(updatedGame);
     }
 }
