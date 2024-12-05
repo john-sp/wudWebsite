@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: WUD Games Website Backend
+  datasource:
+    url: jdbc:h2:file:./data/mydb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+
+springdoc:
+  swagger-ui:
+    url: /WudGamesWebsite.yaml
