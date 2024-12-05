@@ -6,12 +6,16 @@ import org.slf4j.MDC;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,7 +33,8 @@ public class JwtUtil {
 
     public enum AccessLevel {
         HOST,
-        ADMIN
+        ADMIN,
+        ANONYMOUS
     }
 
     /**
@@ -41,7 +46,6 @@ public class JwtUtil {
      */
     public String generateToken(String username, AccessLevel level) {
         Key key = Keys.hmacShaKeyFor(signingKey.getBytes());
-
         return Jwts.builder()
                 .setClaims(Map.of(
                         "username", username,
@@ -70,6 +74,13 @@ public class JwtUtil {
                 .getBody();
     }
 
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        SecretKey key = Keys.hmacShaKeyFor(signingKey.getBytes());
+        return NimbusJwtDecoder.withSecretKey(key).build();
+    }
+
     /**
      * Get the currently authenticated user's username.
      *
@@ -92,7 +103,7 @@ public class JwtUtil {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && authentication.getAuthorities() != null) {
             return authentication.getAuthorities().stream()
-                    .map(grantedAuthority -> AccessLevel.valueOf(grantedAuthority.getAuthority()))
+                    .map(grantedAuthority -> AccessLevel.valueOf(grantedAuthority.getAuthority().substring(5)))
                     .findFirst()
                     .orElse(null); // Assuming only one AccessLevel authority exists
         }

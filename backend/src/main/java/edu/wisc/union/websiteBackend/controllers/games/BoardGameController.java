@@ -1,5 +1,7 @@
 package edu.wisc.union.websiteBackend.controllers.games;
 
+import edu.wisc.union.websiteBackend.auth.JwtUtil;
+import edu.wisc.union.websiteBackend.exception.InputErrorException;
 import edu.wisc.union.websiteBackend.jpa.BoardGame;
 import edu.wisc.union.websiteBackend.jpa.BoardGameRepository;
 import jakarta.annotation.PostConstruct;
@@ -16,6 +18,7 @@ import java.util.List;
 @RequestMapping("/api/games")
 public class BoardGameController {
     private final BoardGameRepository boardGameRepository;
+    private final JwtUtil jwtUtil;
 
 
     @PostConstruct
@@ -24,8 +27,9 @@ public class BoardGameController {
         log.info("Spring boot application running in");
     }
 
-    public BoardGameController(BoardGameRepository boardGameRepository) {
+    public BoardGameController(BoardGameRepository boardGameRepository, JwtUtil jwtUtil) {
         this.boardGameRepository = boardGameRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping()
@@ -35,26 +39,32 @@ public class BoardGameController {
                                                          @RequestParam(required = false) String genre ,
                                                          @RequestParam(required = false) Integer playerCount) {
         List<BoardGame> games = boardGameRepository.findFiltered(name, minPlayTime, maxPlayTime, playerCount);
+        if(jwtUtil.getCurrentAccessLevel().equals(JwtUtil.AccessLevel.ANONYMOUS)) {
+            for (BoardGame game : games)
+                game.setInternalNotes(null);
+        }
+//        List<BoardGame> games = boardGameRepository.findAll();
         return ResponseEntity.ok(games);
     }
 
     @PostMapping
-//    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity addGame(@RequestBody GameDTO game) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GameDTO> addGame(@RequestBody GameDTO game) {
         if (game.getId() != null) {
-            return ResponseEntity.badRequest().build();
+            throw new InputErrorException("A102","You cannot set the ID of game");
         }
         if (game.getName() == null || game.getName().isBlank()) {
-            return ResponseEntity.badRequest().body("The 'name' field is required and cannot be empty or blank.");
+            throw new InputErrorException("A103", "The 'name' field is required and cannot be empty or blank.");
         }
 
         if (boardGameRepository.existsByNameIgnoreCase(game.getName())){
-            return ResponseEntity.badRequest().body("A game with that name already exists");
+            throw new InputErrorException("A104", "A game with that name already exists.");
         }
         BoardGame gameObj = new BoardGame();
         BeanUtils.copyProperties(game, gameObj);
 
-        boardGameRepository.save(gameObj);
+        gameObj = boardGameRepository.save(gameObj);
+        game.setId(gameObj.getId());
         return ResponseEntity.status(201).body(game);
     }
 }

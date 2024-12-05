@@ -1,8 +1,6 @@
 package edu.wisc.union.websiteBackend.jpa;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +10,10 @@ import lombok.Setter;
 @Setter
 public class BoardGame {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "board_games_gen")
+    @SequenceGenerator(name = "board_games_gen", sequenceName = "board_games_seq")
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     private String name;
     private Integer minPlaytime;

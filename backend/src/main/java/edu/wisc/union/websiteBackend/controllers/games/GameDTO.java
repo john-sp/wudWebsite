@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class GameDTO {
-    private String id;
+    private Long id;
     private String name;
     private Integer minPlaytime;
     private Integer maxPlaytime;
