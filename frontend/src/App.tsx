@@ -145,6 +145,7 @@ const GameCard = ({ game }) => {
 };
 
 const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const { auth } = useContext(AuthContext);
     const [gameName, setGameName] = useState('');
     const [genre, setGenre] = useState('');
     const [description, setDescription] = useState('');
@@ -154,13 +155,45 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
     const [maxPlaytime, setMaxPlaytime] = useState('');
     const [boxArtUrl, setBoxArtUrl] = useState('');
     const [quantity, setQuantity] = useState('');
+    const [internalNotes, setInternalNotes] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (gameName) {
-            // TODO: Send to backend
-            console.log('Adding game:', { gameName, genre, minPlayerCount, playtime });
-            onClose(); // Close the popup after submitting
+            const gameData = {
+                name: gameName,
+                genre,
+                description,
+                minPlayerCount: minPlayerCount ? parseInt(minPlayerCount) : undefined,
+                maxPlayerCount: maxPlayerCount ? parseInt(maxPlayerCount) : undefined,
+                minPlaytime: playtime ? parseInt(playtime) : undefined,
+                maxPlaytime: maxPlaytime ? parseInt(maxPlaytime) : undefined,
+                boxImageUrl: boxArtUrl,
+                quantity: quantity ? parseInt(quantity) : undefined,
+                internalNotes
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/games`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${auth.token}`
+                                            },
+                    body: JSON.stringify(gameData),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add game');
+                }
+
+                const result = await response.json();
+                console.log('Game added successfully:', result);
+                onClose(); // Close the popup after submitting
+            } catch (error) {
+                console.error('Error adding game:', error);
+                alert('There was an error adding the game.');
+            }
         } else {
             alert('Game name is required!');
         }
@@ -241,6 +274,13 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                             onChange={(e) => setQuantity(e.target.value)}
                             className="p-2 border rounded"
                         />
+                        <input
+                            type="text"
+                            placeholder="Internal Notes (optional)"
+                            value={internalNotes}
+                            onChange={(e) => setInternalNotes(e.target.value)}
+                            className="p-2 border rounded"
+                        />
                         <div className="flex justify-end gap-2">
                             <Button type="button" onClick={onClose}>Cancel</Button>
                             <Button type="submit" color="green">Add Game</Button>
@@ -256,12 +296,28 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
 const GamesList = ({onAddGameClick}: { onAddGameClick: () => void }) => {
     const [games, setGames] = useState([]);
     const {auth} = useContext(AuthContext);
+    const [loading, setLoading] = useState(true);
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
 
+    const fetchGames = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/games`);
+            if (response.ok) {
+                const data = await response.json();
+                setGames(data);
+            } else {
+                console.error('Failed to fetch games');
+            }
+        } catch (error) {
+            console.error('Error fetching games:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     React.useEffect(() => {
-        fetch(`${API_BASE_URL}/games`)
-            .then(res => res.json())
-            .then(setGames);
+        fetchGames();
     }, []);
 
     return (
@@ -271,11 +327,14 @@ const GamesList = ({onAddGameClick}: { onAddGameClick: () => void }) => {
                     <Plus className="w-4 h-4" /> Add Game
                 </Button>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {loading ? (
+                <p>Loading games...</p>
+            ) :
+                (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {games.map(game => (
                     <GameCard key={game.id} game={game} />
                 ))}
-            </div>
+            </div>)}
         </div>
     );
 };
