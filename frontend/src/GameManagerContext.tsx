@@ -67,12 +67,33 @@ export const GameManagerProvider = ({ children }) => {
         }
     };
 
+    const updateGame = async (gameId, gameData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${auth.token}`
+                },
+                body: JSON.stringify(gameData),
+            });
+            if (response.ok) {
+                fetchGames();
+            } else {
+                console.error('Failed to update game');
+            }
+        } catch (error) {
+            console.error('Error update game:', error);
+        }
+    };
+
+
     useEffect(() => {
         fetchGames();
     }, [auth]);
 
     return (
-        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame }}>
+        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame }}>
     {children}
     </GameManagerContext.Provider>
 );

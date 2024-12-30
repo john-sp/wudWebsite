@@ -32,9 +32,12 @@ const LoginButton = ({ onAddGameClick }: { onAddGameClick: () => void }) => {
     return (
         <div className="fixed top-1 right-4 z-10 flex items-center gap-4">
             {isAdmin && (
-                <Button onClick={onAddGameClick} className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> Add Game
-                </Button>
+                <>
+                    <Button onClick={onAddGameClick} className="flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> Add Game
+                    </Button>
+                </>
+
             )}
             {!auth ? (
                 <div className="relative">
@@ -103,11 +106,13 @@ const GameCard = ({ game }) => {
                 <CardContent className="text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
                     <p className="text-sm text-gray-600">
-                        {game.minPlayerCount}-{game.maxPlayerCount} players | {game.minPlaytime}-{game.maxPlaytime} hours
+                        {game.minPlayerCount}-{game.maxPlayerCount} players
+                        | {game.minPlaytime}-{game.maxPlaytime} hours
                     </p>
                     <p className="mt-2">{game.description}</p>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
-                    <p className="text-sm">Available: {game.quantity - game.checkoutCount}</p>
+                    <p className="text-sm">Available: {game.availableCopies}</p>
+                    <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
                     {(auth?.authenticationLevel.toLowerCase() === 'host' || auth?.authenticationLevel.toLowerCase() === 'admin') && (
                         <p className="mt-2 text-sm italic">{game.internalNotes}</p>
                     )}

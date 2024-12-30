@@ -335,6 +335,34 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+
+  /games/import:
+    post:
+      summary: Import Board Games from a CSV file
+      description: Upload a CSV file to import Board Games into the database. This is currently not programmed.
+      tags:
+        - Admin
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Successfully imported board games from the CSV.
+        '400':
+          description: Invalid CSV format or content.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 #  /steam-game:
 #    get:
 #      summary: Retrieve a list of games
@@ -642,6 +670,9 @@ components:
         maxPlayerCount:
           type: integer
           description: Maximum number of player supported by the game.
+        availableCopies:
+          type: integer
+          description: Number of copies available for checkout
         boxImageUrl:
           type: string
           description: URL to the box art

@@ -65,6 +65,8 @@ public class BoardGameController {
         }
         BoardGame gameObj = new BoardGame();
         BeanUtils.copyProperties(game, gameObj);
+        gameObj.setAvailableCopies(gameObj.getQuantity());
+        gameObj.setCheckoutCount(0);
 
         gameObj = boardGameRepository.save(gameObj);
         game.setId(gameObj.getId());
