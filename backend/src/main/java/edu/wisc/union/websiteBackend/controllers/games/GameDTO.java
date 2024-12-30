@@ -8,8 +8,8 @@ public class GameDTO {
     private String name;
     private Integer minPlaytime;
     private Integer maxPlaytime;
-    private Integer minPlayers;
-    private Integer maxPlayers;
+    private Integer minPlayerCount;
+    private Integer maxPlayerCount;
     private Integer availableCopies;
     private String genre;
     private String boxImageUrl;
