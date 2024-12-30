@@ -12,7 +12,7 @@ public interface BoardGameRepository extends JpaRepository<BoardGame, Long> {
             "(:genre IS NULL OR LOWER(b.genre) LIKE LOWER(CONCAT('%', :genre, '%'))) AND " +
             "(:minPlayTime IS NULL OR b.minPlaytime >= :minPlayTime) AND " +
             "(:maxPlayTime IS NULL OR b.maxPlaytime <= :maxPlayTime) AND " +
-            "(:playerCount IS NULL OR (b.minPlayers <= :playerCount AND b.maxPlayers >= :playerCount))")
+            "(:playerCount IS NULL OR (b.minPlayerCount <= :playerCount AND b.maxPlayerCount >= :playerCount))")
     List<BoardGame> findFiltered(@Param("name") String name,
                                  @Param("genre") String genre,
                                  @Param("minPlayTime") Integer minPlayTime,
