@@ -47,7 +47,7 @@ public class AuthController {
 
 
         // Return AuthDTO
-        AuthDTO authResponse = new AuthDTO(matchingUser.getUsername(), token, Instant.now().plus(expirationTime, ChronoUnit.MILLIS).toString());
+        AuthDTO authResponse = new AuthDTO(matchingUser.getUsername(), token, Instant.now().plus(expirationTime, ChronoUnit.MILLIS).toString(), matchingUser.getLevel().toString());
         return ResponseEntity.ok(authResponse);
     }
 }

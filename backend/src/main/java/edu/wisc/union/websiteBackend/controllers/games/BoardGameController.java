@@ -41,7 +41,7 @@ public class BoardGameController {
                                                          @RequestParam(required = false) Integer maxPlayTime ,
                                                          @RequestParam(required = false) String genre ,
                                                          @RequestParam(required = false) Integer playerCount) {
-        List<BoardGame> games = boardGameRepository.findFiltered(name, minPlayTime, maxPlayTime, playerCount);
+        List<BoardGame> games = boardGameRepository.findFiltered(name, genre, minPlayTime, maxPlayTime, playerCount);
         if(jwtUtil.getCurrentAccessLevel().equals(JwtUtil.AccessLevel.ANONYMOUS)) {
             for (BoardGame game : games)
                 game.setInternalNotes(null);

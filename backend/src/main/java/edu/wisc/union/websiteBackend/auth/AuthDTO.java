@@ -9,4 +9,5 @@ public class AuthDTO {
     private String username;
     private String token;
     private String expireTime;
+    private String authenticationLevel;
 }
