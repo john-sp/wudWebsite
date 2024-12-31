@@ -1,11 +1,15 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { useAuth } from './AuthContext.tsx';
+import { useAuth } from './AuthContext';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
+interface GameManagerProps {
+    game: any; // Replace `any` with the specific type for `game` if possible
+}
+
 export const GameManagerContext = createContext(null);
 
-export const GameManagerProvider = ({ children }) => {
+export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) => {
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const { auth } = useAuth();

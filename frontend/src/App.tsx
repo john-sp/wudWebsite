@@ -1,27 +1,246 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from './components/ui/card.tsx';
-import { Button } from './components/ui/button.tsx';
-import {Pencil, Trash2, LogIn, LogOut, Plus, Minus} from 'lucide-react';
-import { GameManagerProvider, useGameManager } from "./GameManagerContext.tsx";
-import { AuthProvider,useAuth } from './AuthContext.tsx';
+import React, {useState, useEffect} from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download} from 'lucide-react';
+import { GameManagerProvider, useGameManager } from "./GameManagerContext";
+import { AuthProvider,useAuth } from './AuthContext';
 
 // const API_BASE_URL = 'http://localhost:8080/api';
 
-const TopBar = () => (
-    <div className="fixed top-0 left-0 w-full bg-gray-900 text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
-        <div className="text-xl font-bold">
-            <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
-            WUD Games
+const TopBar = () => {
+    const { auth } = useAuth();
+    const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
+    const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
+    const [showStats, setShowStats] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
+    const [showImport, setShowImport] = useState(false);
+    const [isAddGameOpen, setIsAddGameOpen] = useState(false);
+    const handleAddGameClick = () => {
+        setIsAddGameOpen(true);
+    };
+
+    const handleExport = () => {
+        // API call to /games/download-csv
+    };
+
+    const handleReturnAll = () => {
+        // API call to return all games
+    };
+
+    return (
+        <div className="fixed top-0 left-0 w-full bg-gray-900 text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
+            <div className="text-xl font-bold flex items-center">
+                <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
+                WUD Games
+            </div>
+            <div className="flex gap-2">
+                {isAdmin && (
+                    <>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowImport(true)}
+                            className="flex items-center gap-2"
+                        >
+                            <Upload className="w-4 h-4" /> Import
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={handleExport}
+                            className="flex items-center gap-2"
+                        >
+                            <Download className="w-4 h-4" /> Export
+                        </Button>
+                        <Button variant="outline" onClick={handleAddGameClick} className="flex items-center gap-2">
+                            <Plus className="w-4 h-4" /> Add Game
+                        </Button>
+                    </>
+                )}
+                {isHost && (
+                    <Button
+                        variant="outline"
+                        onClick={handleReturnAll}
+                        className="flex items-center gap-2"
+                    >
+                        <RefreshCw className="w-4 h-4" /> Return All
+                    </Button>
+                )}
+                <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(true)}
+                    className="flex items-center gap-2"
+                >
+                    <Filter className="w-4 h-4" /> Filter & Sort
+                </Button>
+                <Button
+                    variant="outline"
+                    onClick={() => setShowStats(true)}
+                    className="flex items-center gap-2"
+                >
+                    <BarChart className="w-4 h-4" /> Stats
+                </Button>
+
+                <LoginButton/>
+            </div>
+            <StatsPopup isOpen={showStats} onClose={() => setShowStats(false)} />
+            <FilterPopup isOpen={showFilters} onClose={() => setShowFilters(false)} />
+            <ImportPopup isOpen={showImport} onClose={() => setShowImport(false)} />
+
+            <AddGamePopup isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
         </div>
-    </div>
-);
+    );
+};
+
+const StatsPopup = ({ isOpen, onClose }) => {
+    const [stats, setStats] = useState(null);
+    // console.log({ Dialog, DialogContent, DialogHeader, DialogTitle });
+    useEffect(() => {
+        if (isOpen) {
+            // API call to get stats
+        }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Game Library Statistics</DialogTitle>
+                </DialogHeader>
+                {stats ? (
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-gray-100 rounded">
+                            <h3 className="font-bold">Total Games</h3>
+                            <p>{stats?.totalGames || 0}</p>
+                        </div>
+                        <div className="p-4 bg-gray-100 rounded">
+                            <h3 className="font-bold">Games Checked Out</h3>
+                            <p>{stats?.checkedOut || 0}</p>
+                        </div>
+                        {/* Add more stats as needed */}
+                    </div>
+                ) : (
+                    <p>Loading statistics...</p>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+const FilterPopup = ({ isOpen, onClose }) => {
+    const [filters, setFilters] = useState({
+        name: '',
+        genre: '',
+        playerCount: '',
+        playTime: ''
+    });
+    const [sortField, setSortField] = useState('name');
+    const [sortDirection, setSortDirection] = useState('asc');
+    const { updateFiltersAndSort } = useGameManager();
+
+    const handleApply = () => {
+        updateFiltersAndSort(filters, { field: sortField, direction: sortDirection });
+        onClose();
+    };
+
+    return (
+
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Filter & Sort Games</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4">
+                    <div>
+                        <label className="block text-sm font-medium">Name</label>
+                        <input
+                            type="text"
+                            className="mt-1 w-full p-2 border rounded"
+                            value={filters.name}
+                            onChange={(e) => setFilters({...filters, name: e.target.value})}
+                        />
+                    </div>
+                    {/* Add more filter fields */}
+                    <div>
+                        <label className="block text-sm font-medium">Sort By</label>
+                        <select
+                            className="mt-1 w-full p-2 border rounded"
+                            value={sortField}
+                            onChange={(e) => setSortField(e.target.value)}
+                        >
+                            <option value="name">Name</option>
+                            <option value="playerCount">Player Count</option>
+                            <option value="playTime">Play Time</option>
+                            <option value="checkoutCount">Popularity</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">Order</label>
+                        <select
+                            className="mt-1 w-full p-2 border rounded"
+                            value={sortDirection}
+                            onChange={(e) => setSortDirection(e.target.value)}
+                        >
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleApply}>Apply</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+const ImportPopup = ({ isOpen, onClose }) => {
+    const [file, setFile] = useState(null);
+
+    const handleDownloadTemplate = () => {
+        // API call to get template CSV
+    };
+
+    const handleImport = () => {
+        if (!file) return;
+        // API call to upload CSV
+    };
+
+    return (
+
+    <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px] text-black">
+                <DialogHeader>
+                    <DialogTitle>Import Games</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 text-black">
+                    <Button onClick={handleDownloadTemplate} variant="outline">
+                        Download Template
+                    </Button>
+                    <div>
+                        <label className="block text-sm font-medium">Upload CSV</label>
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={(e) => setFile(e.target.files[0])}
+                            className="mt-1 w-full"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleImport} disabled={!file}>Import</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 
-const LoginButton = ({ onAddGameClick }: { onAddGameClick: () => void }) => {
+const LoginButton = () => {
     const { auth, login, logout } = useAuth();
     const [showLogin, setShowLogin] = useState(false);
     const [credentials, setCredentials] = useState({ username: '', password: '' });
-    const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
 
     const handleLogin = (e) => {
         e.preventDefault();
@@ -30,15 +249,8 @@ const LoginButton = ({ onAddGameClick }: { onAddGameClick: () => void }) => {
     };
 
     return (
-        <div className="fixed top-1 right-4 z-10 flex items-center gap-4">
-            {isAdmin && (
-                <>
-                    <Button onClick={onAddGameClick} className="flex items-center gap-2">
-                        <Plus className="w-4 h-4" /> Add Game
-                    </Button>
-                </>
+        <div className="z-10 text-black">
 
-            )}
             {!auth ? (
                 <div className="relative">
                     <Button onClick={() => setShowLogin(!showLogin)} className="flex items-center gap-2">
@@ -73,7 +285,7 @@ const LoginButton = ({ onAddGameClick }: { onAddGameClick: () => void }) => {
     );
 };
 
-const GameCard = ({ game }) => {
+const GameCard = ({ key, game }) => {
     const {auth} = useAuth();
     const { deleteGame, checkout, returnGame } = useGameManager();
     const [isEditing, setIsEditing] = useState(false);
@@ -187,7 +399,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
     return (
         isOpen && (
             <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-100">
+                <div className="bg-white p-6 text-black rounded-lg shadow-lg w-100">
                     <h2 className="text-2xl mb-4">Add a Game</h2>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <input
@@ -425,24 +637,21 @@ const GamesList = () => {
 };
 
 const App = () => {
-    const [isAddGameOpen, setIsAddGameOpen] = useState(false);
-    const handleAddGameClick = () => {
-        setIsAddGameOpen(true);
-    };
 
     return (
+<>
         <AuthProvider>
             <GameManagerProvider>
                 <div className="min-h-screen p-8">
                     <TopBar />
-                    <LoginButton  onAddGameClick={handleAddGameClick}/>
                     <div className="min-h-screen p-8 pt-16"> {/* Added pt-16 for padding */}
+                        {/*<p>Hello</p>*/}
                         <GamesList/>
                     </div>
                 </div>
-                <AddGamePopup isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
             </GameManagerProvider>
         </AuthProvider>
+        </>
     );
 };
 

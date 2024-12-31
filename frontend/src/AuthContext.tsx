@@ -3,8 +3,10 @@ import React, { useState, createContext, useContext } from 'react';
 const API_BASE_URL = 'http://localhost:8080/api';
 
 export const AuthContext = createContext(null);
-
-export const AuthProvider = ({ children }) => {
+interface AuthProps {
+    game: any; // Replace `any` with the specific type for `game` if possible
+}
+export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
     const [auth, setAuth] = useState(null);
 
     const login = async (username, password) => {
