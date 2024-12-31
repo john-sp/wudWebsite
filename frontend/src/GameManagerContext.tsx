@@ -66,7 +66,52 @@ export const GameManagerProvider = ({ children }) => {
             console.error('Error deleting game:', error);
         }
     };
-
+    const checkout = async (gameId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/games/${gameId}/checkout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${auth.token}`
+                },
+            });
+            if (response.ok) {
+                setGames((prevGames) =>
+                    prevGames.map((game) =>
+                        game.id === gameId
+                            ? { ...game, availableCopies: game.availableCopies - 1, checkoutCount: game.checkoutCount + 1 }
+                            : game
+                    )
+                );
+            } else {
+                console.error('Failed to checkout game');
+            }
+        } catch (error) {
+            console.error('Error checkingout game:', error);
+        }
+    };
+    const returnGame = async (gameId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/games/${gameId}/return`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${auth.token}`
+                },
+            });
+            if (response.ok) {
+                setGames((prevGames) =>
+                    prevGames.map((game) =>
+                        game.id === gameId
+                            ? { ...game, availableCopies: game.availableCopies + 1 }
+                            : game
+                    )
+                );
+            } else {
+                console.error('Failed to checkout game');
+            }
+        } catch (error) {
+            console.error('Error checkingout game:', error);
+        }
+    };
     const updateGame = async (gameId, gameData) => {
         try {
             const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
@@ -93,7 +138,7 @@ export const GameManagerProvider = ({ children }) => {
     }, [auth]);
 
     return (
-        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame }}>
+        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame }}>
     {children}
     </GameManagerContext.Provider>
 );

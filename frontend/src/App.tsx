@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from './components/ui/card.tsx';
 import { Button } from './components/ui/button.tsx';
-import { Pencil, Trash2, LogIn, LogOut, Plus } from 'lucide-react';
+import {Pencil, Trash2, LogIn, LogOut, Plus, Minus} from 'lucide-react';
 import { GameManagerProvider, useGameManager } from "./GameManagerContext.tsx";
 import { AuthProvider,useAuth } from './AuthContext.tsx';
 
@@ -10,8 +10,8 @@ import { AuthProvider,useAuth } from './AuthContext.tsx';
 const TopBar = () => (
     <div className="fixed top-0 left-0 w-full bg-gray-900 text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
         <div className="text-xl font-bold">
-            <img src="/path/to/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
-            Wud Games
+            <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
+            WUD Games
         </div>
     </div>
 );
@@ -75,14 +75,19 @@ const LoginButton = ({ onAddGameClick }: { onAddGameClick: () => void }) => {
 
 const GameCard = ({ game }) => {
     const {auth} = useAuth();
-    const { deleteGame } = useGameManager();
+    const { deleteGame, checkout, returnGame } = useGameManager();
     const [isEditing, setIsEditing] = useState(false);
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
-
+    const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
     const handleDelete = async () => {
         deleteGame(game.id);
     };
-
+    const handleCheckout = async () => {
+        checkout(game.id);
+    };
+    const handleReturn = async () => {
+        returnGame(game.id);
+    };
     return (
         <>
             <Card className="w-full max-w-sm">
@@ -90,10 +95,23 @@ const GameCard = ({ game }) => {
                     <img
                         src={game.boxImageUrl || "/api/placeholder/200/200"}
                         alt={game.name}
-                        className="w-full h-48 object-cover rounded-t-lg"
+                        className="w-full h-48 object-cover rounded-t-lg text-center"
                     />
+                    {isHost && (
+                    <div className="absolute top-2 right-2 grid grid-cols-1 gap-y-1">
+                        <div className="bg-green-700 top-2 right-2 grid-cols-2 grid rounded-lg">
+                            <Button title="Checkout Game" variant="outline" onClick={handleCheckout} >
+                                <Plus className="w-4 h-4" />
+                            </Button>
+                            <div className="bg-red-900 rounded-r-lg">
+                                <Button title="Return Game" variant="outline bg-red-700" onClick={handleReturn}>
+                                    <Minus className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </div>
+
                     {isAdmin && (
-                        <div className="absolute top-2 right-2 flex gap-2 drop-shadow-sm drop-shadow">
+                        <div className="bg-gray-400 top-6 right-2 flex gap-2 rounded-lg">
                             <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
                                 <Pencil className="w-4 h-4" />
                             </Button>
@@ -102,6 +120,7 @@ const GameCard = ({ game }) => {
                             </Button>
                         </div>
                     )}
+                    </div>)}
                 </CardHeader>
                 <CardContent className="text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
@@ -113,7 +132,7 @@ const GameCard = ({ game }) => {
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
                     <p className="text-sm">Available: {game.availableCopies}</p>
                     <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
-                    {(auth?.authenticationLevel.toLowerCase() === 'host' || auth?.authenticationLevel.toLowerCase() === 'admin') && (
+                    {(isHost) && (
                         <p className="mt-2 text-sm italic">{game.internalNotes}</p>
                     )}
                 </CardContent>
@@ -396,7 +415,7 @@ const GamesList = () => {
             {loading ? (
                 <p>Loading games...</p>
             ) :
-                (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-6">
                 {games.map(game => (
                     <GameCard key={game.id} game={game} />
                 ))}
@@ -414,10 +433,10 @@ const App = () => {
     return (
         <AuthProvider>
             <GameManagerProvider>
-                <div className="min-h-screen bg-gray-100 p-8">
+                <div className="min-h-screen p-8">
                     <TopBar />
                     <LoginButton  onAddGameClick={handleAddGameClick}/>
-                    <div className="min-h-screen bg-gray-100 p-8 pt-16"> {/* Added pt-16 for padding */}
+                    <div className="min-h-screen p-8 pt-16"> {/* Added pt-16 for padding */}
                         <GamesList/>
                     </div>
                 </div>
