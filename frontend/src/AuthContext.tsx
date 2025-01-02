@@ -26,20 +26,27 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
             });
-            const data = await response.json();
+            if (response.ok) {
+                const data = await response.json();
 
-            // Store auth in cookies
-            Cookies.set('token', data.token, { expires: 1 }); // Expires in 1 day
-            Cookies.set('expiration', data.expireTime, { expires: 1 });
-            Cookies.set('level', data.authenticationLevel, { expires: 1 });
-            Cookies.set('username', data.username, { expires: 1 });
+                // Store auth in cookies
+                Cookies.set('token', data.token, {expires: 1}); // Expires in 1 day
+                Cookies.set('expiration', data.expireTime, {expires: 1});
+                Cookies.set('level', data.authenticationLevel, {expires: 1});
+                Cookies.set('username', data.username, {expires: 1});
 
-            setAuth({
-                ...data,
-                expiration: new Date(data.expireTime).toISOString(),
-            });
+                setAuth({
+                    ...data,
+                    expiration: new Date(data.expireTime).toISOString(),
+                });
+            } else if (response.status == 401) {
+                throw new Error('Invalid username or password');
+            } else {
+                throw new Error('An error occurred during login. Please try again later.');
+            }
         } catch (error) {
             console.error('Login failed:', error);
+            throw error;
         }
     };
 

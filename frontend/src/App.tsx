@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download} from 'lucide-react';
 import { GameManagerProvider, useGameManager } from "./GameManagerContext";
 import { AuthProvider,useAuth } from './AuthContext';
+import {Alert} from "@/components/ui/alert";
 
 // const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -241,12 +242,24 @@ const ImportPopup = ({ isOpen, onClose }) => {
 const LoginButton = () => {
     const { auth, login, logout } = useAuth();
     const [showLogin, setShowLogin] = useState(false);
+    const [error, setError] = useState('');
     const [credentials, setCredentials] = useState({ username: '', password: '' });
 
-    const handleLogin = (e) => {
+    useEffect(() => {
+        if (auth || !showLogin) {
+            setError('');
+        }
+    }, [auth, showLogin]);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
-        login(credentials.username, credentials.password);
-        setShowLogin(false);
+        setError('');
+        try {
+            await login(credentials.username, credentials.password);
+            setShowLogin(false);
+        } catch (error) {
+            setError(error.message);
+        }
     };
 
     return (
@@ -260,6 +273,10 @@ const LoginButton = () => {
                     {showLogin && (
                         <div className="absolute right-0 mt-2 p-4 bg-white rounded-lg shadow-lg">
                             <form onSubmit={handleLogin} className="flex flex-col gap-2">
+                                {error && (
+                                    <Alert variant="error" className="mb-2" description={error}>
+                                    </Alert>
+                                )}
                                 <input
                                     type="text"
                                     placeholder="Username"
