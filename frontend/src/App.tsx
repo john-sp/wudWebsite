@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -244,6 +244,20 @@ const LoginButton = () => {
     const [showLogin, setShowLogin] = useState(false);
     const [error, setError] = useState('');
     const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const loginRef = useRef(null);
+
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (loginRef.current && !loginRef.current.contains(event.target)) {
+                setShowLogin(false);
+                setError('');
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         if (auth || !showLogin) {
@@ -266,7 +280,7 @@ const LoginButton = () => {
         <div className="z-10 text-black">
 
             {!auth ? (
-                <div className="relative">
+                <div className="relative" ref={loginRef}>
                     <Button onClick={() => setShowLogin(!showLogin)} className="flex items-center gap-2">
                         <LogIn className="w-4 h-4" /> Login
                     </Button>
