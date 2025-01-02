@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download} from 'lucide-react';
 import { GameManagerProvider, useGameManager } from "./GameManagerContext";
 import { AuthProvider,useAuth } from './AuthContext';
@@ -311,19 +312,17 @@ const GameCard = ({ key, game }) => {
                     />
                     {isHost && (
                     <div className="absolute top-2 right-2 grid grid-cols-1 gap-y-1">
-                        <div className="bg-green-700 top-2 right-2 grid-cols-2 grid rounded-lg">
-                            <Button title="Checkout Game" variant="outline" onClick={handleCheckout} >
+                        <div className="top-2 right-2 grid-cols-2 gap-1 grid rounded-lg">
+                            <Button title="Checkout Game" variant="constructive" onClick={handleCheckout} >
                                 <Plus className="w-4 h-4" />
                             </Button>
-                            <div className="bg-red-900 rounded-r-lg">
-                                <Button title="Return Game" variant="outline bg-red-700" onClick={handleReturn}>
-                                    <Minus className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            <Button title="Return Game" variant="destructive" onClick={handleReturn}>
+                                <Minus className="w-4 h-4" />
+                            </Button>
                         </div>
 
                     {isAdmin && (
-                        <div className="bg-gray-400 top-6 right-2 flex gap-2 rounded-lg">
+                        <div className="top-6 right-2 flex gap-1 rounded-lg">
                             <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
                                 <Pencil className="w-4 h-4" />
                             </Button>
@@ -623,34 +622,48 @@ const GamesList = () => {
     const { games, loading } = useGameManager();
 
     return (
-        <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-6">
             {loading ? (
-                <p>Loading games...</p>
-            ) :
-                (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-6">
-                {games.map(game => (
-                    <GameCard key={game.id} game={game} />
-                ))}
-            </div>)}
+                    <Card className="w-full max-w-sm">
+                        <CardHeader className="relative">
+                            <Skeleton className="w-full h-48 object-cover bg-slate-500 rounded-t-lg" />
+                        </CardHeader>
+                        <CardContent className="text-left space-y-2">
+                            <Skeleton className="h-4 w-[250px] bg-slate-500" />
+                            <Skeleton className="h-4 w-[250px] bg-slate-500" />
+                        </CardContent>
+                    </Card>
+                ) :
+                (
+                    <>
+                        {
+                            games.map(game => (
+                                <GameCard key={game.id} game={game}/>
+                            ))
+                        }
+                    </>
+                )}
         </div>
-    );
-};
+    )
+        ;
+    }
+;
 
 const App = () => {
 
     return (
-<>
-        <AuthProvider>
-            <GameManagerProvider>
-                <div className="min-h-screen p-8">
-                    <TopBar />
-                    <div className="min-h-screen p-8 pt-16"> {/* Added pt-16 for padding */}
-                        {/*<p>Hello</p>*/}
-                        <GamesList/>
+        <>
+            <AuthProvider>
+                <GameManagerProvider>
+                    <div className="min-h-screen p-8">
+                        <TopBar/>
+                        <div className="min-h-screen p-8 pt-16"> {/* Added pt-16 for padding */}
+                            {/*<p>Hello</p>*/}
+                            <GamesList/>
+                        </div>
                     </div>
-                </div>
-            </GameManagerProvider>
-        </AuthProvider>
+                </GameManagerProvider>
+            </AuthProvider>
         </>
     );
 };
