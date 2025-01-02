@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
         if (!auth?.token) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/refresh`, {
+            const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${auth.token}` },
             });
