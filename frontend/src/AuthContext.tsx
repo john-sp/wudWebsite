@@ -12,10 +12,10 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
         // Initialize auth from cookies
         const token = Cookies.get('token');
         const expiration = Cookies.get('expiration');
-        const level = Cookies.get('level');
+        const authenticationLevel  = Cookies.get('level');
         const username = Cookies.get('username');
-        return token && expiration && level && username
-            ? { token, expiration, level, username }
+        return token && expiration && authenticationLevel  && username
+            ? { token, expiration: new Date(expiration).toISOString(), authenticationLevel , username }
             : null;
     });
 
@@ -30,11 +30,14 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
 
             // Store auth in cookies
             Cookies.set('token', data.token, { expires: 1 }); // Expires in 1 day
-            Cookies.set('expiration', data.expiration, { expires: 1 });
-            Cookies.set('level', data.level, { expires: 1 });
+            Cookies.set('expiration', data.expireTime, { expires: 1 });
+            Cookies.set('level', data.authenticationLevel, { expires: 1 });
             Cookies.set('username', data.username, { expires: 1 });
 
-            setAuth(data);
+            setAuth({
+                ...data,
+                expiration: new Date(data.expireTime).toISOString(),
+            });
         } catch (error) {
             console.error('Login failed:', error);
         }
@@ -65,14 +68,14 @@ export const AuthProvider: React.FC<AuthProps> = ({ children }) => {
 
                 // Update cookies
                 Cookies.set('token', data.token, { expires: 1 }); // Expires in 1 day
-                Cookies.set('expiration', data.expiration, { expires: 1 });
-                Cookies.set('level', data.level, { expires: 1 });
+                Cookies.set('expiration', data.expireTime, { expires: 1 });
+                Cookies.set('level', data.authenticationLevel, { expires: 1 });
                 Cookies.set('username', data.username, { expires: 1 });
 
                 setAuth({
                     ...auth,
                     token: data.token,
-                    expiration: data.expiration,
+                    expiration: new Date(data.expireTime).toISOString(),
                 });
             } else {
                 console.error('Failed to refresh token:', response.statusText);
