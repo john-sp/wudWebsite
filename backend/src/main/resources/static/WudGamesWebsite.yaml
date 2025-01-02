@@ -49,22 +49,27 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: Bearer token for authenticated requests.
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  expireTime:
-                    type: string
-                    description: When the token will expire
-                    format: date-time
-                  authenticationLevel:
-                    type: string
-                    enum: [Unauthenticated, Host, Exec]
-                    description: The level of authentication the token is for
+                $ref: '#/components/schemas/AuthDTO'
         '401':
           description: Invalid credentials.
+  /auth/refresh:
+    post:
+      summary: Refresh JWT Token
+      description: Generates a new JWT token for an authenticated user using the existing token in the `Authorization` header.
+      tags:
+        - Host
+        - Admin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully refreshed token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthDTO'
+        '401':
+          description: Unauthorized - Invalid or expired token.
   /games:
     get:
       operationId: getGames
@@ -688,6 +693,21 @@ components:
         internalNotes:
           type: string
           description: Internal notes, only sent to people with host login or above
+    AuthDTO:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Bearer token for authenticated requests.
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expireTime:
+          type: string
+          description: When the token will expire
+          format: date-time
+        authenticationLevel:
+          type: string
+          enum: [ Unauthenticated, Host, Exec ]
+          description: The level of authentication the token is for
 #    SteamGame:
 #      type: object
 #      properties:

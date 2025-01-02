@@ -1,10 +1,12 @@
 package edu.wisc.union.websiteBackend.auth;
 
+import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -50,4 +52,36 @@ public class AuthController {
         AuthDTO authResponse = new AuthDTO(matchingUser.getUsername(), token, Instant.now().plus(expirationTime, ChronoUnit.MILLIS).toString(), matchingUser.getLevel().toString());
         return ResponseEntity.ok(authResponse);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthDTO> refresh() {
+        try {
+            // Validate and parse claims from the token
+            String username = jwtUtil.getCurrentUsername();
+            JwtUtil.AccessLevel level = jwtUtil.getCurrentAccessLevel();
+
+            if (username == null || level == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            // Generate new token
+            String newToken = jwtUtil.generateToken(username, level);
+
+            // Create AuthDTO
+            AuthDTO authResponse = new AuthDTO(
+                    username,
+                    newToken,
+                    Instant.now().plus(expirationTime, ChronoUnit.MILLIS).toString(),
+                    level.toString()
+            );
+
+            return ResponseEntity.ok(authResponse);
+
+        } catch (JwtException e) {
+            // Handle token parsing or validation errors
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
 }
