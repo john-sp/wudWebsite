@@ -86,14 +86,14 @@ paths:
             type: string
         - name: minPlaytime
           in: query
-          description: Filter by minimum playtime (in hours).
+          description: Filter by minimum playtime (in minutes).
           required: false
           schema:
             type: integer
             minimum: 0
         - name: maxPlaytime
           in: query
-          description: Filter by maximum playtime (in hours).
+          description: Filter by maximum playtime (in minutes).
           required: false
           schema:
             type: integer
@@ -225,12 +225,12 @@ paths:
                   example: Updated Game Name
                 minPlaytime:
                   type: integer
-                  description: The updated minimum playtime in hours.
+                  description: The updated minimum playtime in minutes.
                   minimum: 0
                   example: 30
                 maxPlaytime:
                   type: integer
-                  description: The updated maximum playtime in hours.
+                  description: The updated maximum playtime in minutes.
                   minimum: 0
                   example: 120
                 genre:
@@ -552,14 +552,14 @@ paths:
 #            type: string
 #        - name: minPlaytime
 #          in: query
-#          description: Filter by minimum playtime (in hours).
+#          description: Filter by minimum playtime (in minutes).
 #          required: false
 #          schema:
 #            type: integer
 #            minimum: 0
 #        - name: maxPlaytime
 #          in: query
-#          description: Filter by maximum playtime (in hours).
+#          description: Filter by maximum playtime (in minutes).
 #          required: false
 #          schema:
 #            type: integer
@@ -662,10 +662,10 @@ components:
           description: Name of the game.
         minPlaytime:
           type: integer
-          description: Minimum playtime of the game in hours.
+          description: Minimum playtime of the game in minutes.
         maxPlaytime:
           type: integer
-          description: Maximum playtime of tha game in hours.
+          description: Maximum playtime of tha game in minutes.
         genre:
           type: string
           description: Genre of the game.
@@ -798,7 +798,7 @@ components:
 #          description: Name of the game.
 #        playtime:
 #          type: integer
-#          description: Average playtime of the game in hours.
+#          description: Average playtime of the game in minutes.
 #        genre:
 #          type: string
 #          description: Genre of the game.

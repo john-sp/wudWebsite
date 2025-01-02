@@ -134,8 +134,8 @@ const FilterPopup = ({ isOpen, onClose }) => {
     const [filters, setFilters] = useState({
         name: '',
         genre: '',
-        playerCount: '',
-        playTime: ''
+        minPlaytime: '',
+        minPlayerCount: ''
     });
     const [sortField, setSortField] = useState('name');
     const [sortDirection, setSortDirection] = useState('asc');
@@ -172,8 +172,8 @@ const FilterPopup = ({ isOpen, onClose }) => {
                             onChange={(e) => setSortField(e.target.value)}
                         >
                             <option value="name">Name</option>
-                            <option value="playerCount">Player Count</option>
-                            <option value="playTime">Play Time</option>
+                            <option value="minPlayerCount">Player Count</option>
+                            <option value="minPlaytime">Play Time</option>
                             <option value="checkoutCount">Popularity</option>
                         </select>
                     </div>
@@ -199,14 +199,12 @@ const FilterPopup = ({ isOpen, onClose }) => {
 
 const ImportPopup = ({ isOpen, onClose }) => {
     const [file, setFile] = useState(null);
-
-    const handleDownloadTemplate = () => {
-        // API call to get template CSV
-    };
+    const {importFile, loading} = useGameManager();
 
     const handleImport = () => {
         if (!file) return;
-        // API call to upload CSV
+        importFile(file);
+        isOpen = false;
     };
 
     return (
@@ -217,21 +215,24 @@ const ImportPopup = ({ isOpen, onClose }) => {
                     <DialogTitle>Import Games</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 text-black">
-                    <Button onClick={handleDownloadTemplate} variant="outline">
-                        Download Template
-                    </Button>
+                    <a href="importTemplate.csv" download="WUDGames-ImportTemplate">
+                        <Button  variant="outline">
+                            Download Template
+                        </Button>
+                    </a>
                     <div>
                         <label className="block text-sm font-medium">Upload CSV</label>
                         <input
                             type="file"
                             accept=".csv"
                             onChange={(e) => setFile(e.target.files[0])}
+                            disabled={loading}
                             className="mt-1 w-full"
                         />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleImport} disabled={!file}>Import</Button>
+                    <Button onClick={handleImport} disabled={!file}>{loading ? "Importing..." : "Import"}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -368,7 +369,7 @@ const GameCard = ({ key, game }) => {
                     <h3 className="text-lg font-bold">{game.name}</h3>
                     <p className="text-sm text-gray-600">
                         {game.minPlayerCount}-{game.maxPlayerCount} players
-                        | {game.minPlaytime}-{game.maxPlaytime} hours
+                        | {game.minPlaytime}-{game.maxPlaytime} minutes
                     </p>
                     <p className="mt-2">{game.description}</p>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
@@ -474,7 +475,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                         <div className="flex gap-2">
                             <input
                                 type="number"
-                                placeholder="Min Playtime"
+                                placeholder="Minimum Playtime"
                                 value={playtime}
                                 onChange={(e) => setPlaytime(e.target.value)}
                                 className="p-2 border rounded"

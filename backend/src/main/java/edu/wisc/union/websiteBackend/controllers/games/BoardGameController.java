@@ -7,6 +7,7 @@ import edu.wisc.union.websiteBackend.jpa.BoardGameRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.csv.CSVRecord;
 import org.springdoc.api.OpenApiResourceNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpHeaders;
@@ -15,10 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -234,5 +234,91 @@ public class BoardGameController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=boardgames.csv")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(outputStream.toByteArray());
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> importBoardGames(@RequestParam MultipartFile file) {
+        try {
+            Reader reader = new InputStreamReader(file.getInputStream());
+            Iterable<CSVRecord> records = CSVFormat.DEFAULT
+                    .withFirstRecordAsHeader() // This assumes that the first row contains headers.
+                    .parse(reader);
+
+            for (CSVRecord record : records) {
+                // Map CSV fields to the BoardGame entity
+                BoardGame game = new BoardGame();
+                game.setName(record.get("Title"));
+                game.setQuantity(parseQuantity(record.get("Quantity")));
+                game.setMinPlayerCount(parseMinPlayers(record.get("Players")));
+                game.setMaxPlayerCount(parseMaxPlayers(record.get("Players")));
+                game.setMinPlaytime(parseMinPlaytime(record.get("Time to Play")));
+                game.setMaxPlaytime(parseMaxPlaytime(record.get("Time to Play")));
+                game.setCheckoutCount(parseCheckoutCount(record.get("Times Checked Out")));
+                game.setGenre(record.get("Genres"));
+                game.setDescription(record.get("Quick Description"));
+                game.setInternalNotes(record.get("Notes"));
+
+                // Save the entity in the DB
+                boardGameRepository.save(game);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error importing CSV", e);
+        }
+        return ResponseEntity.ok().build();
+    }
+    private Integer parseQuantity(String quantity) {
+        try {
+            return Integer.parseInt(quantity.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private Integer parseMinPlayers(String players) {
+        String[] parts = players.split("-");
+        return Integer.parseInt(parts[0].trim());
+    }
+
+    private Integer parseMaxPlayers(String players) {
+        String[] parts = players.split("-");
+        if (parts.length > 1) {
+            return Integer.parseInt(parts[1].trim());
+        }
+        return parseMinPlayers(players);
+    }
+
+    private Integer parseMinPlaytime(String time) {
+        return parsePlaytime(time)[0];
+    }
+
+    private Integer parseMaxPlaytime(String time) {
+        return parsePlaytime(time)[1];
+    }
+
+    private Integer[] parsePlaytime(String time) {
+        String[] parts = time.split("-");
+        Integer minPlaytime = parsePlaytimePart(parts[0].trim());
+        Integer maxPlaytime = parts.length > 1 ? parsePlaytimePart(parts[1].trim()) : minPlaytime;
+        return new Integer[] {minPlaytime, maxPlaytime};
+    }
+
+    private Integer parsePlaytimePart(String timePart) {
+        try {
+            if (timePart.contains("min")) {
+                return Integer.parseInt(timePart.replace("mins", "").replace("min", "").trim());
+            }
+            return 0; // Default to 0 if unable to parse
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private Integer parseCheckoutCount(String checkoutCount) {
+        try {
+            return Integer.parseInt(checkoutCount.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

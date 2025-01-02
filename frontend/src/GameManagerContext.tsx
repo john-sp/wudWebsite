@@ -13,15 +13,29 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const { auth } = useAuth();
+    let queryParams = new URLSearchParams();
+    let [sortData, setSortData] = useState('');
 
     const fetchGames = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/games`, {
+            const queryString = queryParams.toString();
+            const response = await fetch(`${API_BASE_URL}/games${queryString ? `?${queryString}` : ''}`, {
                 headers: auth ? { 'Authorization': `Bearer ${auth.token}` } : {},
             });
             if (response.ok) {
-                const data = await response.json();
+                let data = await response.json();
+                if (sortData) {
+                    const {field, direction} = sortData;
+                    data = data.sort((a, b) => {
+                        const valueA = a[field];
+                        const valueB = b[field];
+
+                        if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+                        if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
                 setGames(data);
             } else {
                 console.error('Failed to fetch games');
@@ -135,6 +149,51 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
             console.error('Error update game:', error);
         }
     };
+    const updateFiltersAndSort = async (filters, sort) => {
+        setLoading(true);
+        try {
+            queryParams = new URLSearchParams();
+            // Add filters to the query string
+            if (filters) {
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined) {
+                        if (typeof value === "string" && value) {
+                            queryParams.append(key, value);
+                        }
+                    }
+                });
+            }
+
+            // Perform sorting in TypeScript
+            if (sort)
+                setSortData(sort);
+            fetchGames();
+        } catch (error) {
+            console.error('Error updating filters and sort:', error);
+        }
+    };
+    const importFile = async (file) => {
+
+        setLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            console.log(formData.get('file'))
+            const response = await fetch(`${API_BASE_URL}/games/import`, {
+                method: 'POST',
+                headers: {
+                //     // 'Content-Type': 'multipart/form-data;charset=UTF-8',
+                    'Authorization': `Bearer ${auth.token}`,
+                //     redirect: 'follow',
+                },
+                body: formData,
+            });
+
+            fetchGames();
+        } catch (error) {
+            console.error('Error updating filters and sort:', error);
+        }
+    };
 
 
     useEffect(() => {
@@ -142,7 +201,7 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
     }, [auth]);
 
     return (
-        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame }}>
+        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame, updateFiltersAndSort, importFile }}>
     {children}
     </GameManagerContext.Provider>
 );
