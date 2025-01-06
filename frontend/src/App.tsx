@@ -1,9 +1,10 @@
 import React, {useState, useEffect, useRef} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download} from 'lucide-react';
+import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, Menu} from 'lucide-react';
 import { GameManagerProvider, useGameManager } from "./GameManagerContext";
 import { AuthProvider,useAuth } from './AuthContext';
 import {Alert} from "@/components/ui/alert";
@@ -18,17 +19,39 @@ const TopBar = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [showImport, setShowImport] = useState(false);
     const [isAddGameOpen, setIsAddGameOpen] = useState(false);
-    const handleAddGameClick = () => {
-        setIsAddGameOpen(true);
-    };
 
-    const handleExport = () => {
-        // API call to /games/download-csv
-    };
+    const handleAddGameClick = () => setIsAddGameOpen(true);
+    const handleExport = () => {/* API call */};
+    const handleReturnAll = () => {/* API call */};
 
-    const handleReturnAll = () => {
-        // API call to return all games
-    };
+    const MenuItems = () => (
+        <>
+            {isAdmin && (
+                <>
+                    <DropdownMenuItem onClick={() => setShowImport(true)}>
+                        <Upload className="w-4 h-4 mr-2" /> Import
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExport}>
+                        <Download className="w-4 h-4 mr-2" /> Export
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleAddGameClick}>
+                        <Plus className="w-4 h-4 mr-2" /> Add Game
+                    </DropdownMenuItem>
+                </>
+            )}
+            {isHost && (
+                <DropdownMenuItem onClick={handleReturnAll}>
+                    <RefreshCw className="w-4 h-4 mr-2" /> Return All
+                </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => setShowFilters(true)}>
+                <Filter className="w-4 h-4 mr-2" /> Filter & Sort
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowStats(true)}>
+                <BarChart className="w-4 h-4 mr-2" /> Stats
+            </DropdownMenuItem>
+        </>
+    );
 
     return (
         <div className="fixed top-0 left-0 w-full bg-gray-900 text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
@@ -36,21 +59,30 @@ const TopBar = () => {
                 <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
                 WUD Games
             </div>
-            <div className="flex gap-2">
+
+            {/* Mobile Menu */}
+            <div className="md:hidden flex items-center gap-2">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                            <Menu className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-gray-400">
+                        <MenuItems />
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <LoginButton />
+            </div>
+
+            {/* Desktop Menu */}
+            <div className="hidden md:flex gap-2">
                 {isAdmin && (
                     <>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowImport(true)}
-                            className="flex items-center gap-2"
-                        >
+                        <Button variant="outline" onClick={() => setShowImport(true)} className="flex items-center gap-2">
                             <Upload className="w-4 h-4" /> Import
                         </Button>
-                        <Button
-                            variant="outline"
-                            onClick={handleExport}
-                            className="flex items-center gap-2"
-                        >
+                        <Button variant="outline" onClick={handleExport} className="flex items-center gap-2">
                             <Download className="w-4 h-4" /> Export
                         </Button>
                         <Button variant="outline" onClick={handleAddGameClick} className="flex items-center gap-2">
@@ -59,35 +91,22 @@ const TopBar = () => {
                     </>
                 )}
                 {isHost && (
-                    <Button
-                        variant="outline"
-                        onClick={handleReturnAll}
-                        className="flex items-center gap-2"
-                    >
+                    <Button variant="outline" onClick={handleReturnAll} className="flex items-center gap-2">
                         <RefreshCw className="w-4 h-4" /> Return All
                     </Button>
                 )}
-                <Button
-                    variant="outline"
-                    onClick={() => setShowFilters(true)}
-                    className="flex items-center gap-2"
-                >
+                <Button variant="outline" onClick={() => setShowFilters(true)} className="flex items-center gap-2">
                     <Filter className="w-4 h-4" /> Filter & Sort
                 </Button>
-                <Button
-                    variant="outline"
-                    onClick={() => setShowStats(true)}
-                    className="flex items-center gap-2"
-                >
+                <Button variant="outline" onClick={() => setShowStats(true)} className="flex items-center gap-2">
                     <BarChart className="w-4 h-4" /> Stats
                 </Button>
-
-                <LoginButton/>
+                <LoginButton />
             </div>
+
             <StatsPopup isOpen={showStats} onClose={() => setShowStats(false)} />
             <FilterPopup isOpen={showFilters} onClose={() => setShowFilters(false)} />
             <ImportPopup isOpen={showImport} onClose={() => setShowImport(false)} />
-
             <AddGamePopup isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
         </div>
     );
@@ -368,8 +387,10 @@ const GameCard = ({ key, game }) => {
                 <CardContent className="text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
                     <p className="text-sm text-gray-600">
-                        {game.minPlayerCount}-{game.maxPlayerCount} players
-                        | {game.minPlaytime}-{game.maxPlaytime} minutes
+                        {game.minPlayerCount}
+                        {game.minPlayerCount !== game.maxPlayerCount && `-${game.maxPlayerCount}`} players
+                        | {game.minPlaytime}
+                        {game.minPlaytime !== game.maxPlaytime && `-${game.maxPlaytime}`} minutes
                     </p>
                     <p className="mt-2">{game.description}</p>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>

@@ -14,6 +14,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -238,6 +240,7 @@ public class BoardGameController {
 
     @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(propagation = Propagation.NESTED)
     public ResponseEntity<Void> importBoardGames(@RequestParam MultipartFile file) {
         try {
             Reader reader = new InputStreamReader(file.getInputStream());
@@ -249,12 +252,35 @@ public class BoardGameController {
                 // Map CSV fields to the BoardGame entity
                 BoardGame game = new BoardGame();
                 game.setName(record.get("Title"));
-                game.setQuantity(parseQuantity(record.get("Quantity")));
-                game.setMinPlayerCount(parseMinPlayers(record.get("Players")));
-                game.setMaxPlayerCount(parseMaxPlayers(record.get("Players")));
-                game.setMinPlaytime(parseMinPlaytime(record.get("Time to Play")));
-                game.setMaxPlaytime(parseMaxPlaytime(record.get("Time to Play")));
-                game.setCheckoutCount(parseCheckoutCount(record.get("Times Checked Out")));
+
+                try {
+                    game.setQuantity(parseQuantity(record.get("Quantity")));
+                }
+                catch (NumberFormatException e) {
+                    // Let the error go
+                }
+                try {
+                    if (record.get("Players") != null && !record.get("Players").isBlank()) {
+                        game.setMinPlayerCount(parseMinPlayers(record.get("Players")));
+                        game.setMaxPlayerCount(parseMaxPlayers(record.get("Players")));
+                    }
+                }
+                catch (NumberFormatException e) {
+                    // Let the error go
+                }
+                try {
+                    if (record.get("Time to Play") != null && !record.get("Time to Play").isBlank()) {
+                        game.setMinPlaytime(parseMinPlaytime(record.get("Time to Play")));
+                        game.setMaxPlaytime(parseMaxPlaytime(record.get("Time to Play")));
+                    }
+                } catch (NumberFormatException e) {
+                    // Let the error go
+                }
+                try {
+                    game.setCheckoutCount(parseCheckoutCount(record.get("Times Checked Out")));
+                } catch (NumberFormatException e) {
+                    // Let the error go
+                }
                 game.setGenre(record.get("Genres"));
                 game.setDescription(record.get("Quick Description"));
                 game.setInternalNotes(record.get("Notes"));
