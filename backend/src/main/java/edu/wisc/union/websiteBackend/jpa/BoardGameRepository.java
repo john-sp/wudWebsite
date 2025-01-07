@@ -1,5 +1,6 @@
 package edu.wisc.union.websiteBackend.jpa;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +18,8 @@ public interface BoardGameRepository extends JpaRepository<BoardGame, Long> {
                                  @Param("genre") String genre,
                                  @Param("minPlayTime") Integer minPlayTime,
                                  @Param("maxPlayTime") Integer maxPlayTime,
-                                 @Param("playerCount") Integer playerCount);
+                                 @Param("playerCount") Integer playerCount,
+                                 Sort order);
 
     boolean existsByNameIgnoreCase(String name);
 }

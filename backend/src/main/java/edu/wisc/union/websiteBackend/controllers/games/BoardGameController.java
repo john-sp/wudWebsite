@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVRecord;
 import org.springdoc.api.OpenApiResourceNotFoundException;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,8 @@ public class BoardGameController {
                                                          @RequestParam(required = false) Integer maxPlayTime ,
                                                          @RequestParam(required = false) String genre ,
                                                          @RequestParam(required = false) Integer playerCount) {
-        List<BoardGame> games = boardGameRepository.findFiltered(name, genre, minPlayTime, maxPlayTime, playerCount);
+        List<BoardGame> games = boardGameRepository.findFiltered(name, genre, minPlayTime, maxPlayTime, playerCount, Sort.by("name"));
+
         if(jwtUtil.getCurrentAccessLevel().equals(JwtUtil.AccessLevel.ANONYMOUS)) {
             for (BoardGame game : games)
                 game.setInternalNotes(null);

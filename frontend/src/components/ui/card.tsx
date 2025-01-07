@@ -26,5 +26,5 @@ export const CardHeader: React.FC<CardProps> = ({ className, children }) => {
 };
 
 export const CardContent: React.FC<CardProps> = ({ className, children }) => {
-    return <div className={clsx("text-gray-600 p-4", className)}>{children}</div>;
+    return <div className={clsx("p-4", className)}>{children}</div>;
 };

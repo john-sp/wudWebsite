@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, Menu} from 'lucide-react';
+import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, Menu, Sun, Moon} from 'lucide-react';
 import { GameManagerProvider, useGameManager } from "./GameManagerContext";
 import { AuthProvider,useAuth } from './AuthContext';
 import {Alert} from "@/components/ui/alert";
@@ -54,7 +54,7 @@ const TopBar = () => {
     );
 
     return (
-        <div className="fixed top-0 left-0 w-full bg-gray-900 text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
+        <div className="fixed top-0 left-0 w-full bg-menubar-light dark:bg-menubar-dark text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
             <div className="text-xl font-bold flex items-center">
                 <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
                 WUD Games
@@ -70,6 +70,26 @@ const TopBar = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-gray-400">
                         <MenuItems />
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button  variant="outline" size="icon">
+                            <Sun className="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                            <span className="sr-only">Toggle theme</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setTheme("light")}>
+                            Light
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("dark")}>
+                            Dark
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("auto")}>
+                            System
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <LoginButton />
@@ -101,6 +121,26 @@ const TopBar = () => {
                 <Button variant="outline" onClick={() => setShowStats(true)} className="flex items-center gap-2">
                     <BarChart className="w-4 h-4" /> Stats
                 </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button  variant="outline" size="icon">
+                            <Sun className="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                            <span className="sr-only">Toggle theme</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setTheme("light")}>
+                            Light
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("dark")}>
+                            Dark
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("auto")}>
+                            System
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <LoginButton />
             </div>
 
@@ -177,7 +217,7 @@ const FilterPopup = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium">Name</label>
                         <input
                             type="text"
-                            className="mt-1 w-full p-2 border rounded"
+                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={filters.name}
                             onChange={(e) => setFilters({...filters, name: e.target.value})}
                         />
@@ -186,7 +226,7 @@ const FilterPopup = ({ isOpen, onClose }) => {
                     <div>
                         <label className="block text-sm font-medium">Sort By</label>
                         <select
-                            className="mt-1 w-full p-2 border rounded"
+                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={sortField}
                             onChange={(e) => setSortField(e.target.value)}
                         >
@@ -199,7 +239,7 @@ const FilterPopup = ({ isOpen, onClose }) => {
                     <div>
                         <label className="block text-sm font-medium">Order</label>
                         <select
-                            className="mt-1 w-full p-2 border rounded"
+                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={sortDirection}
                             onChange={(e) => setSortDirection(e.target.value)}
                         >
@@ -229,11 +269,11 @@ const ImportPopup = ({ isOpen, onClose }) => {
     return (
 
     <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px] text-black">
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Import Games</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 text-black">
+                <div className="grid gap-4">
                     <a href="importTemplate.csv" download="WUDGames-ImportTemplate">
                         <Button  variant="outline">
                             Download Template
@@ -364,20 +404,20 @@ const GameCard = ({ key, game }) => {
                     {isHost && (
                     <div className="absolute top-2 right-2 grid grid-cols-1 gap-y-1">
                         <div className="top-2 right-2 grid-cols-2 gap-1 grid rounded-lg">
-                            <Button title="Checkout Game" variant="constructive" onClick={handleCheckout} >
+                            <Button  title="Checkout Game" variant="constructive" size="icon" onClick={handleCheckout} >
                                 <Plus className="w-4 h-4" />
                             </Button>
-                            <Button title="Return Game" variant="destructive" onClick={handleReturn}>
+                            <Button  title="Return Game" variant="destructive" size="icon" onClick={handleReturn}>
                                 <Minus className="w-4 h-4" />
                             </Button>
                         </div>
 
                     {isAdmin && (
                         <div className="top-6 right-2 flex gap-1 rounded-lg">
-                            <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
+                            <Button  variant="outline" size="icon" onClick={() => setIsEditing(true)}>
                                 <Pencil className="w-4 h-4" />
                             </Button>
-                            <Button variant="outline" size="icon" onClick={handleDelete}>
+                            <Button  variant="outline" size="icon" onClick={handleDelete}>
                                 <Trash2 className="w-4 h-4" />
                             </Button>
                         </div>
@@ -386,7 +426,7 @@ const GameCard = ({ key, game }) => {
                 </CardHeader>
                 <CardContent className="text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm">
                         {game.minPlayerCount}
                         {game.minPlayerCount !== game.maxPlayerCount && `-${game.maxPlayerCount}`} players
                         | {game.minPlaytime}
@@ -449,100 +489,106 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
     };
 
     return (
-        isOpen && (
-            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                <div className="bg-white p-6 text-black rounded-lg shadow-lg w-100">
-                    <h2 className="text-2xl mb-4">Add a Game</h2>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Filter & Sort Games</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-y-2 w-full">
+                    <input
+                        type="text"
+                        placeholder="Game Name (required)"
+                        value={gameName}
+                        onChange={(e) => setGameName(e.target.value)}
+                        className="p-2 w-full border rounded"
+                        required
+                    />
+                    <input
+                        type="text"
+                        placeholder="Description (optional)"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Genre (optional)"
+                        value={genre}
+                        onChange={(e) => setGenre(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <div className="grid grid-cols-2 gap-2 w-full">
                         <input
-                            type="text"
-                            placeholder="Game Name (required)"
-                            value={gameName}
-                            onChange={(e) => setGameName(e.target.value)}
-                            className="p-2 border rounded"
-                            required
-                        />
-                        <input
-                            type="text"
-                            placeholder="Description (optional)"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="p-2 border rounded"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Genre (optional)"
-                            value={genre}
-                            onChange={(e) => setGenre(e.target.value)}
-                            className="p-2 border rounded"
-                        />
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                placeholder="Minimum Player Count"
-                                value={minPlayerCount}
-                                onChange={(e) => setMinPlayerCount(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Maximum Player Count"
-                                value={maxPlayerCount}
-                                onChange={(e) => setMaxPlayerCount(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                        </div>
-
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                placeholder="Minimum Playtime"
-                                value={playtime}
-                                onChange={(e) => setPlaytime(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Max Playtime"
-                                value={maxPlaytime}
-                                onChange={(e) => setMaxPlaytime(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Box Art URL (optional)"
-                            value={boxArtUrl}
-                            onChange={(e) => setBoxArtUrl(e.target.value)}
+                            type="number"
+                            placeholder="Minimum Players"
+                            value={minPlayerCount}
+                            min="0"
+                            onChange={(e) => setMinPlayerCount(e.target.value)}
                             className="p-2 border rounded"
                         />
                         <input
                             type="number"
-                            placeholder="Quantity (optional)"
-                            value={quantity}
-                            onChange={(e) => setQuantity(e.target.value)}
+                            placeholder="Maximum Players"
+                            value={maxPlayerCount}
+                            min="0"
+                            onChange={(e) => setMaxPlayerCount(e.target.value)}
+                            className="p-2 border rounded"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                        <input
+                            type="number"
+                            placeholder="Minimum Playtime"
+                            value={playtime}
+                            min="0"
+                            onChange={(e) => setPlaytime(e.target.value)}
                             className="p-2 border rounded"
                         />
                         <input
-                            type="text"
-                            placeholder="Internal Notes (optional)"
-                            value={internalNotes}
-                            onChange={(e) => setInternalNotes(e.target.value)}
+                            type="number"
+                            placeholder="Max Playtime"
+                            value={maxPlaytime}
+                            min="0"
+                            onChange={(e) => setMaxPlaytime(e.target.value)}
                             className="p-2 border rounded"
                         />
-                        <div className="flex justify-end gap-2">
-                            <Button type="button" onClick={onClose}>Cancel</Button>
-                            <Button type="submit" color="green">Add Game</Button>
-                        </div>
-                    </form>
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Box Art URL (optional)"
+                        value={boxArtUrl}
+                        onChange={(e) => setBoxArtUrl(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <input
+                        type="number"
+                        placeholder="Quantity (optional)"
+                        value={quantity}
+                        min="0"
+                        onChange={(e) => setQuantity(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Internal Notes (optional)"
+                        value={internalNotes}
+                        onChange={(e) => setInternalNotes(e.target.value)}
+                        className="p-2 border rounded"
+                    />
                 </div>
-            </div>
-        )
-    );
+                <DialogFooter>
+                    <Button onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleSubmit}>Add Game</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+    ;
 };
 
-const EditGamePopup = ({ isOpen, game, onClose }: { isOpen: boolean, game: any, onClose: () => void }) => {
-    const { updateGame } = useGameManager();
+const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, onClose: () => void }) => {
+    const {updateGame} = useGameManager();
     const [gameName, setGameName] = useState(game?.name || '');
     const [genre, setGenre] = useState(game?.genre || '');
     const [description, setDescription] = useState(game?.description || '');
@@ -675,7 +721,7 @@ const GamesList = () => {
     const { games, loading } = useGameManager();
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-2 gap-y-6">
             {loading ? (
                     <Card className="w-full max-w-sm">
                         <CardHeader className="relative">
@@ -702,13 +748,37 @@ const GamesList = () => {
     }
 ;
 
+const setTheme = (theme: 'light' | 'dark' | 'auto') => {
+    const htmlElement = document.documentElement;
+    htmlElement.classList.remove('light', 'dark');
+
+    if (theme === 'auto') {
+        localStorage.removeItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        htmlElement.classList.toggle('dark', prefersDark);
+        htmlElement.classList.toggle('light', !prefersDark);
+    } else {
+        localStorage.theme = theme;
+        htmlElement.classList.add(theme);
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.theme as 'light' | 'dark' | undefined;
+    if (savedTheme) {
+        setTheme(savedTheme);
+    } else {
+        setTheme('auto');
+    }
+});
+
 const App = () => {
 
     return (
         <>
             <AuthProvider>
                 <GameManagerProvider>
-                    <div className="min-h-screen p-8">
+                    <div className="min-h-screen p-8 antialiased text-text-light dark:text-text-dark bg-background-light dark:bg-background-dark accent-blue-500">
                         <TopBar/>
                         <div className="min-h-screen p-8 pt-16"> {/* Added pt-16 for padding */}
                             {/*<p>Hello</p>*/}
