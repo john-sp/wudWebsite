@@ -5,6 +5,9 @@ target/
 !**/src/test/**/target/
 data/
 application.yaml
+/src/main/resources/static/
+!/src/main/resources/static/WudGamesWebsite.yaml
+
 
 ### STS ###
 .apt_generated
