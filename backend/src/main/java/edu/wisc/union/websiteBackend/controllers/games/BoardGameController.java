@@ -3,6 +3,8 @@ package edu.wisc.union.websiteBackend.controllers.games;
 import edu.wisc.union.websiteBackend.auth.JwtUtil;
 import edu.wisc.union.websiteBackend.exception.InputErrorException;
 import edu.wisc.union.websiteBackend.jpa.BoardGame;
+import edu.wisc.union.websiteBackend.jpa.BoardGameCheckout;
+import edu.wisc.union.websiteBackend.jpa.BoardGameCheckoutRepository;
 import edu.wisc.union.websiteBackend.jpa.BoardGameRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -23,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -30,12 +34,15 @@ import java.util.Map;
 @RestController()
 @RequestMapping("/api/games")
 public class BoardGameController {
+    private final BoardGameCheckoutRepository boardGameCheckoutRepository;
     private final BoardGameRepository boardGameRepository;
     private final JwtUtil jwtUtil;
 
-    public BoardGameController(BoardGameRepository boardGameRepository, JwtUtil jwtUtil) {
+    public BoardGameController(BoardGameRepository boardGameRepository, JwtUtil jwtUtil,
+                               BoardGameCheckoutRepository boardGameCheckoutRepository) {
         this.boardGameRepository = boardGameRepository;
         this.jwtUtil = jwtUtil;
+        this.boardGameCheckoutRepository = boardGameCheckoutRepository;
     }
 
     @GetMapping()
@@ -177,6 +184,11 @@ public class BoardGameController {
         if (game.getAvailableCopies() <= 0) {
             throw new InputErrorException("A105", "No copies available for checkout.");
         }
+
+        BoardGameCheckout.BoardGameCheckoutKey key = new BoardGameCheckout.BoardGameCheckoutKey(game, LocalDate.now(ZoneId.of("America/Chicago")));
+        BoardGameCheckout checkout = boardGameCheckoutRepository.findById(key).orElse(new BoardGameCheckout(key, 0));
+        checkout.setCount(checkout.getCount() + 1);
+        boardGameCheckoutRepository.save(checkout);
 
         game.setAvailableCopies(game.getAvailableCopies() - 1);
         game.setCheckoutCount(game.getCheckoutCount() + 1);
