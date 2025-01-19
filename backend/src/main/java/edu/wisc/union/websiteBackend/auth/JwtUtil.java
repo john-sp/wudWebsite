@@ -48,9 +48,10 @@ public class JwtUtil {
         Key key = Keys.hmacShaKeyFor(signingKey.getBytes());
         return Jwts.builder()
                 .setClaims(Map.of(
-                        "username", username,
+                        "name", username,
                         "level", level.name()
                 ))
+                .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)

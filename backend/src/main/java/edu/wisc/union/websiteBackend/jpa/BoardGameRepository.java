@@ -22,4 +22,8 @@ public interface BoardGameRepository extends JpaRepository<BoardGame, Long> {
                                  Sort order);
 
     boolean existsByNameIgnoreCase(String name);
+
+    @Query("SELECT SUM(b.availableCopies) FROM BoardGame b")
+    Integer findTotalAvailableCopies();
+
 }

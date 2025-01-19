@@ -154,42 +154,129 @@ const TopBar = () => {
 
 const StatsPopup = ({ isOpen, onClose }) => {
     const [stats, setStats] = useState(null);
-    // console.log({ Dialog, DialogContent, DialogHeader, DialogTitle });
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const { fetchGameStats } = useGameManager();
+
     useEffect(() => {
         if (isOpen) {
-            // API call to get stats
+            setStats(null);
+            (async () => {
+                const data = await fetchGameStats({ startDate, endDate });
+                setStats(data);
+            })();
         }
-    }, [isOpen]);
+    }, [isOpen, startDate, endDate, fetchGameStats]);
+
+    const handleDateChange = (e) => {
+        const { name, value } = e.target;
+        if (name === 'startDate') {
+            setStartDate(value);
+        } else if (name === 'endDate') {
+            setEndDate(value);
+        }
+    };
 
     if (!isOpen) return null;
 
-    return (
+    return  (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-background-light dark:bg-background-dark">
                 <DialogHeader>
-                    <DialogTitle>Game Library Statistics</DialogTitle>
+                    <DialogTitle className="text-text-light dark:text-text-dark">Game Library Statistics</DialogTitle>
                 </DialogHeader>
+                <div className="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-text-light dark:text-text-dark">Start Date</label>
+                        <input
+                            type="date"
+                            name="startDate"
+                            value={startDate}
+                            onChange={handleDateChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-text-light dark:text-text-dark">End Date</label>
+                        <input
+                            type="date"
+                            name="endDate"
+                            value={endDate}
+                            onChange={handleDateChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm"
+                        />
+                    </div>
+                </div>
                 {stats ? (
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-gray-100 rounded">
-                            <h3 className="font-bold">Total Games</h3>
-                            <p>{stats?.totalGames || 0}</p>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Total Checkouts</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.totalCheckouts}</p>
                         </div>
-                        <div className="p-4 bg-gray-100 rounded">
-                            <h3 className="font-bold">Games Checked Out</h3>
-                            <p>{stats?.checkedOut || 0}</p>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Most Popular Game</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.mostPopularGameName}</p>
                         </div>
-                        {/* Add more stats as needed */}
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Average Games Checkout</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.averageGamesCheckout.toFixed(2)}</p>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Most Popular Game Night</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.mostPopularGameNight}</p>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Average Players Per Game</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.averagePlayersPerGame.toFixed(2)}</p>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Average Playtime Per Game</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.averagePlaytimePerGame.toFixed(2)} mins</p>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <h3 className="font-bold text-text-light dark:text-text-dark">Total Available Copies</h3>
+                            <p className="text-text-light dark:text-text-dark">{stats.totalAvailableCopies}</p>
+                        </div>
                     </div>
                 ) : (
-                    <p>Loading statistics...</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                            <Skeleton className="h-6 w-32"/>
+                            <Skeleton className="h-4 w-24 mt-2"/>
+                        </div>
+                    </div>
                 )}
             </DialogContent>
         </Dialog>
     );
 };
 
-const FilterPopup = ({ isOpen, onClose }) => {
+
+const FilterPopup = ({isOpen, onClose}) => {
     const [filters, setFilters] = useState({
         name: '',
         genre: '',
@@ -198,10 +285,10 @@ const FilterPopup = ({ isOpen, onClose }) => {
     });
     const [sortField, setSortField] = useState('name');
     const [sortDirection, setSortDirection] = useState('asc');
-    const { updateFiltersAndSort } = useGameManager();
+    const {updateFiltersAndSort} = useGameManager();
 
     const handleApply = () => {
-        updateFiltersAndSort(filters, { field: sortField, direction: sortDirection });
+        updateFiltersAndSort(filters, {field: sortField, direction: sortDirection});
         onClose();
     };
 
@@ -220,6 +307,33 @@ const FilterPopup = ({ isOpen, onClose }) => {
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={filters.name}
                             onChange={(e) => setFilters({...filters, name: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">Genre</label>
+                        <input
+                            type="text"
+                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            value={filters.genre}
+                            onChange={(e) => setFilters({...filters, genre: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">Playtime</label>
+                        <input
+                            type="number"
+                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            value={filters.minPlaytime}
+                            onChange={(e) => setFilters({...filters, minPlaytime: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">Player Count</label>
+                        <input
+                            type="number"
+                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            value={filters.minPlayerCount}
+                            onChange={(e) => setFilters({...filters, minPlayerCount: e.target.value})}
                         />
                     </div>
                     {/* Add more filter fields */}
@@ -256,7 +370,7 @@ const FilterPopup = ({ isOpen, onClose }) => {
     );
 };
 
-const ImportPopup = ({ isOpen, onClose }) => {
+const ImportPopup = ({isOpen, onClose}) => {
     const [file, setFile] = useState(null);
     const {importFile, loading} = useGameManager();
 
@@ -268,7 +382,7 @@ const ImportPopup = ({ isOpen, onClose }) => {
 
     return (
 
-    <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Import Games</DialogTitle>
@@ -492,7 +606,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Filter & Sort Games</DialogTitle>
+                    <DialogTitle>Add new game</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-y-2 w-full">
                     <input
@@ -583,8 +697,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    )
-    ;
+    );
 };
 
 const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, onClose: () => void }) => {
@@ -625,94 +738,100 @@ const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, on
     };
 
     return (
-        isOpen && (
-            <div className="fixed z-10 inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-100">
-                    <h2 className="text-2xl mb-4">Edit Game</h2>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Edit {gameName}</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-y-2 w-full">
+                    <input
+                        type="text"
+                        placeholder="Game Name (required)"
+                        value={gameName}
+                        onChange={(e) => setGameName(e.target.value)}
+                        className="p-2 w-full border rounded"
+                        required
+                    />
+                    <input
+                        type="text"
+                        placeholder="Description (optional)"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Genre (optional)"
+                        value={genre}
+                        onChange={(e) => setGenre(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <div className="grid grid-cols-2 gap-2 w-full">
                         <input
-                            type="text"
-                            placeholder="Game Name (required)"
-                            value={gameName}
-                            onChange={(e) => setGameName(e.target.value)}
-                            className="p-2 border rounded"
-                            required
-                        />
-                        <input
-                            type="text"
-                            placeholder="Description (optional)"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="p-2 border rounded"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Genre (optional)"
-                            value={genre}
-                            onChange={(e) => setGenre(e.target.value)}
-                            className="p-2 border rounded"
-                        />
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                placeholder="Min Players"
-                                value={minPlayerCount}
-                                onChange={(e) => setMinPlayerCount(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Max Players"
-                                value={maxPlayerCount}
-                                onChange={(e) => setMaxPlayerCount(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                placeholder="Min Playtime"
-                                value={playtime}
-                                onChange={(e) => setPlaytime(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Max Playtime"
-                                value={maxPlaytime}
-                                onChange={(e) => setMaxPlaytime(e.target.value)}
-                                className="p-2 border rounded"
-                            />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Box Art URL"
-                            value={boxArtUrl}
-                            onChange={(e) => setBoxArtUrl(e.target.value)}
+                            type="number"
+                            placeholder="Minimum Players"
+                            value={minPlayerCount}
+                            min="0"
+                            onChange={(e) => setMinPlayerCount(e.target.value)}
                             className="p-2 border rounded"
                         />
                         <input
                             type="number"
-                            placeholder="Quantity"
-                            value={quantity}
-                            onChange={(e) => setQuantity(e.target.value)}
+                            placeholder="Maximum Players"
+                            value={maxPlayerCount}
+                            min="0"
+                            onChange={(e) => setMaxPlayerCount(e.target.value)}
+                            className="p-2 border rounded"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                        <input
+                            type="number"
+                            placeholder="Minimum Playtime"
+                            value={playtime}
+                            min="0"
+                            onChange={(e) => setPlaytime(e.target.value)}
                             className="p-2 border rounded"
                         />
                         <input
-                            type="text"
-                            placeholder="Internal Notes"
-                            value={internalNotes}
-                            onChange={(e) => setInternalNotes(e.target.value)}
+                            type="number"
+                            placeholder="Max Playtime"
+                            value={maxPlaytime}
+                            min="0"
+                            onChange={(e) => setMaxPlaytime(e.target.value)}
                             className="p-2 border rounded"
                         />
-                        <div className="flex justify-end gap-2">
-                            <Button type="button" onClick={onClose}>Cancel</Button>
-                            <Button type="submit" color="blue">Update Game</Button>
-                        </div>
-                    </form>
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Box Art URL (optional)"
+                        value={boxArtUrl}
+                        onChange={(e) => setBoxArtUrl(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <input
+                        type="number"
+                        placeholder="Quantity (optional)"
+                        value={quantity}
+                        min="0"
+                        onChange={(e) => setQuantity(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Internal Notes (optional)"
+                        value={internalNotes}
+                        onChange={(e) => setInternalNotes(e.target.value)}
+                        className="p-2 border rounded"
+                    />
                 </div>
-            </div>
-        )
+                <DialogFooter>
+                    <Button onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleSubmit}>Update Game</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 };
 

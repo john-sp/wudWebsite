@@ -17,7 +17,7 @@ public class BoardGameCheckout {
     @EmbeddedId
     private BoardGameCheckoutKey key;
 
-    private int count;
+    private int count = 0;
 
     @Embeddable
     @Data

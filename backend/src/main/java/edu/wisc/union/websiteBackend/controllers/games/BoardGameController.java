@@ -13,6 +13,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.springdoc.api.OpenApiResourceNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -114,11 +115,12 @@ public class BoardGameController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         // Check if the game exists
-        if (!boardGameRepository.existsById(id)) {
-            throw new InputErrorException("A105", "Game not found with ID: " + id);
-        }
+        BoardGame game = boardGameRepository.findById(id).orElseThrow(() ->
+                new InputErrorException("A105", "Game not found with ID: " + id));
+
 
         // Delete the game
+        boardGameCheckoutRepository.deleteByKey_BoardGame(game);
         boardGameRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
@@ -180,7 +182,13 @@ public class BoardGameController {
     public ResponseEntity<String> checkoutGame(@PathVariable Long id) {
         BoardGame game = boardGameRepository.findById(id)
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Game not found with ID: " + id));
-
+        if (game.getAvailableCopies() == null) {
+            if (game.getQuantity() == null) {
+                game.setQuantity(1);
+                game.setAvailableCopies(1);
+            } else
+                game.setAvailableCopies(game.getQuantity());
+        }
         if (game.getAvailableCopies() <= 0) {
             throw new InputErrorException("A105", "No copies available for checkout.");
         }
@@ -210,6 +218,8 @@ public class BoardGameController {
 
         return ResponseEntity.ok("Game returned successfully.");
     }
+
+
 
     @GetMapping("/download-csv")
     @PreAuthorize("hasRole('ADMIN')")
@@ -252,6 +262,50 @@ public class BoardGameController {
                 .body(outputStream.toByteArray());
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getGameNightStats(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        var mostPopularGame = boardGameCheckoutRepository.findMostPopularGame(startDate, endDate);
+        Object[] mostPopularGameData = mostPopularGame.isEmpty() ? new String[] { "N/A", "No data available" } : mostPopularGame.get(0);
+
+        // Fetch the most popular game night, handle null or empty list safely
+        var mostPopularGameNight = boardGameCheckoutRepository.findMostPopularGameNight(startDate, endDate);
+        Object[] mostPopularGameNightData = mostPopularGameNight.isEmpty() ? new String[] { "N/A", "No data available" } : mostPopularGameNight.get(0);
+
+        // Fetch average games checkout, handle null safely
+        Double averageGamesCheckout = boardGameCheckoutRepository.findAverageGamesCheckout(startDate, endDate);
+        averageGamesCheckout = (averageGamesCheckout != null) ? averageGamesCheckout : 0.0;
+
+        // Fetch total checkouts, handle null safely
+        Integer totalCheckouts = boardGameCheckoutRepository.findTotalCheckouts(startDate, endDate);
+        totalCheckouts = (totalCheckouts != null) ? totalCheckouts : 0;
+
+        // Fetch average players per game, handle null safely
+        Double averagePlayersPerGame = boardGameCheckoutRepository.findAveragePlayersPerGame(startDate, endDate);
+        averagePlayersPerGame = (averagePlayersPerGame != null) ? averagePlayersPerGame : 0.0;
+
+        // Fetch average playtime per game, handle null safely
+        Double averagePlaytimePerGame = boardGameCheckoutRepository.findAveragePlaytimePerGame(startDate, endDate);
+        averagePlaytimePerGame = (averagePlaytimePerGame != null) ? averagePlaytimePerGame : 0.0;
+
+        // Fetch total available copies, handle null safely
+        Integer totalAvailableCopies = boardGameRepository.findTotalAvailableCopies();
+        totalAvailableCopies = (totalAvailableCopies != null) ? totalAvailableCopies : 0;
+
+        // Return the response, handling possible null or empty values
+        return ResponseEntity.ok(Map.of(
+                "mostPopularGameId", mostPopularGameData[0],
+                "mostPopularGameName", mostPopularGameData[1],
+                "averageGamesCheckout", averageGamesCheckout,
+                "mostPopularGameNight", mostPopularGameNightData[0],
+                "totalCheckouts", totalCheckouts,
+                "averagePlayersPerGame", averagePlayersPerGame,
+                "averagePlaytimePerGame", averagePlaytimePerGame,
+                "totalAvailableCopies", totalAvailableCopies
+        ));
+    }
+
     @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(propagation = Propagation.NESTED)
@@ -269,6 +323,7 @@ public class BoardGameController {
 
                 try {
                     game.setQuantity(parseQuantity(record.get("Quantity")));
+                    game.setAvailableCopies(game.getAvailableCopies());
                 }
                 catch (NumberFormatException e) {
                     // Let the error go
@@ -307,6 +362,9 @@ public class BoardGameController {
         }
         return ResponseEntity.ok().build();
     }
+
+
+
     private Integer parseQuantity(String quantity) {
         try {
             return Integer.parseInt(quantity.trim());

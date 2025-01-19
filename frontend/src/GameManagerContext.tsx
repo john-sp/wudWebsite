@@ -178,7 +178,6 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
         try {
             const formData = new FormData();
             formData.append("file", file);
-            console.log(formData.get('file'))
             const response = await fetch(`${API_BASE_URL}/games/import`, {
                 method: 'POST',
                 headers: {
@@ -195,13 +194,61 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
         }
     };
 
+    const exportFile = async () => {
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/games/download-csv`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${auth.token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'boardgames.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('There was an error downloading the CSV:', error);
+        }
+
+    };
+    const fetchGameStats = async ({ startDate, endDate }) => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/games/stats?${params.toString()}`, {
+                headers: auth ? { 'Authorization': `Bearer ${auth.token}` } : {},
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                console.error('Failed to fetch game stats');
+            }
+        } catch (error) {
+            console.error('Error fetching game stats:', error);
+        }
+        return null;
+    };
 
     useEffect(() => {
         fetchGames();
     }, [auth]);
 
     return (
-        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame, updateFiltersAndSort, importFile }}>
+        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame, updateFiltersAndSort, importFile, exportFile, fetchGameStats }}>
     {children}
     </GameManagerContext.Provider>
 );
