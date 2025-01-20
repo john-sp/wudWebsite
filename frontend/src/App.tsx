@@ -8,6 +8,16 @@ import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter,
 import { GameManagerProvider, useGameManager } from "./GameManagerContext";
 import { AuthProvider,useAuth } from './AuthContext';
 import {Alert} from "@/components/ui/alert";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -284,7 +294,7 @@ const FilterPopup = ({isOpen, onClose}) => {
         name: '',
         genre: '',
         minPlaytime: '',
-        minPlayerCount: ''
+        playerCount: ''
     });
     const [sortField, setSortField] = useState('name');
     const [sortDirection, setSortDirection] = useState('asc');
@@ -335,8 +345,8 @@ const FilterPopup = ({isOpen, onClose}) => {
                         <input
                             type="number"
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
-                            value={filters.minPlayerCount}
-                            onChange={(e) => setFilters({...filters, minPlayerCount: e.target.value})}
+                            value={filters.playerCount}
+                            onChange={(e) => setFilters({...filters, playerCount: e.target.value})}
                         />
                     </div>
                     {/* Add more filter fields */}
@@ -434,7 +444,7 @@ const ImportPopup = ({isOpen, onClose}) => {
     const handleImport = () => {
         if (!file) return;
         importFile(file);
-        isOpen = false;
+        onClose();
     };
 
     return (
@@ -561,6 +571,7 @@ const GameCard = ({ key, game }) => {
     const { auth } = useAuth();
     const { deleteGame, checkout, returnGame } = useGameManager();
     const [isEditing, setIsEditing] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
     const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
 
@@ -582,47 +593,13 @@ const GameCard = ({ key, game }) => {
 
     return (
         <>
-            <Card className="w-full max-w-sm">
+            <Card className="w-full max-w-sm relative">
                 <CardHeader className="relative">
                     <img
                         src={game.boxImageUrl || "/api/placeholder/200/200"}
                         alt={game.name}
                         className="w-full h-48 object-cover rounded-t-lg text-center"
                     />
-                    {isHost && (
-                        <div className="absolute top-2 right-2 grid grid-cols-1 gap-y-1">
-                            <div className="top-2 right-2 grid-cols-2 gap-1 grid rounded-lg">
-                                <Button
-                                    title="Checkout Game"
-                                    variant="constructive"
-                                    size="icon"
-                                    onClick={handleCheckout}
-                                    disabled={isCheckoutDisabled} // Disable if no available copies
-                                >
-                                    <Plus className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    title="Return Game"
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={handleReturn}
-                                    disabled={isReturnDisabled} // Disable if quantity equals available copies
-                                >
-                                    <Minus className="w-4 h-4" />
-                                </Button>
-                            </div>
-
-                            {isAdmin && (
-                                <div className="top-6 right-2 flex gap-1 rounded-lg">
-                                    <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
-                                        <Pencil className="w-4 h-4" />
-                                    </Button>
-                                    <Button variant="outline" size="icon" onClick={handleDelete}>
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            )}
-                        </div>)}
                 </CardHeader>
                 <CardContent className="text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
@@ -632,17 +609,70 @@ const GameCard = ({ key, game }) => {
                         | {game.minPlaytime}
                         {game.minPlaytime !== game.maxPlaytime && `-${game.maxPlaytime}`} minutes
                     </p>
-                    <p className="mt-2">{game.description}</p>
+                    <div className="max-h-16 overflow-y-auto">
+                        <p className="mt-2 text-xs">{game.description}</p>
+                    </div>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
-                    <p className="text-sm">Quantity Owned: {game.quantity}</p>
-                    <p className="text-sm">Available: {game.availableCopies}</p>
+                    <p className="text-sm">Available: {game.availableCopies} / {game.quantity}</p>
                     <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
-                    {(isHost) && (
+                    {isHost && (
                         <p className="mt-2 text-sm italic">{game.internalNotes}</p>
                     )}
                 </CardContent>
+
+                {isHost && (
+                    <div className="absolute bottom-0 rounded-tl-md right-0 px-2 py-2 border-t border-l flex justify-end gap-2">
+                        {isAdmin && (
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
+                                    <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => setShowDeleteDialog(true)}>
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        )}
+                        <div className="flex gap-2">
+                            <Button
+                                title="Checkout Game"
+                                variant="constructive"
+                                size="icon"
+                                onClick={handleCheckout}
+                                disabled={isCheckoutDisabled}
+                            >
+                                <Plus className="w-4 h-4" />
+                            </Button>
+                            <Button
+                                title="Return Game"
+                                variant="destructive"
+                                size="icon"
+                                onClick={handleReturn}
+                                disabled={isReturnDisabled}
+                            >
+                                <Minus className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
             <EditGamePopup isOpen={isEditing} game={game} onClose={() => setIsEditing(false)} />
+
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Game</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete "{game.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="text-white bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };
@@ -711,6 +741,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         className="p-2 border rounded"
+                        maxlength="1024"
                     />
                     <input
                         type="text"
@@ -718,6 +749,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                         value={genre}
                         onChange={(e) => setGenre(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="256"
                     />
                     <div className="grid grid-cols-2 gap-2 w-full">
                         <input
@@ -762,6 +794,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                         value={boxArtUrl}
                         onChange={(e) => setBoxArtUrl(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="256"
                     />
                     <input
                         type="number"
@@ -777,6 +810,7 @@ const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                         value={internalNotes}
                         onChange={(e) => setInternalNotes(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="256"
                     />
                 </div>
                 <DialogFooter>
@@ -846,6 +880,7 @@ const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, on
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="1024"
                     />
                     <input
                         type="text"
@@ -853,6 +888,7 @@ const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, on
                         value={genre}
                         onChange={(e) => setGenre(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="256"
                     />
                     <div className="grid grid-cols-2 gap-2 w-full">
                         <input
@@ -897,6 +933,7 @@ const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, on
                         value={boxArtUrl}
                         onChange={(e) => setBoxArtUrl(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="256"
                     />
                     <input
                         type="number"
@@ -912,6 +949,7 @@ const EditGamePopup = ({isOpen, game, onClose}: { isOpen: boolean, game: any, on
                         value={internalNotes}
                         onChange={(e) => setInternalNotes(e.target.value)}
                         className="p-2 border rounded"
+                        maxLength="256"
                     />
                 </div>
                 <DialogFooter>

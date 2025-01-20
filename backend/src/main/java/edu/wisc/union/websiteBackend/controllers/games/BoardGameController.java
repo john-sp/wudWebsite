@@ -348,7 +348,7 @@ public class BoardGameController {
             for (CSVRecord record : records) {
                 // Map CSV fields to the BoardGame entity
                 BoardGame game = new BoardGame();
-                game.setName(record.get("Title"));
+                game.setName(record.get("Title").trim());
 
                 try {
                     game.setQuantity(parseQuantity(record.get("Quantity")));
