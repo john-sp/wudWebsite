@@ -6,6 +6,9 @@ import edu.wisc.union.websiteBackend.jpa.BoardGame;
 import edu.wisc.union.websiteBackend.jpa.BoardGameCheckout;
 import edu.wisc.union.websiteBackend.jpa.BoardGameCheckoutRepository;
 import edu.wisc.union.websiteBackend.jpa.BoardGameRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController()
@@ -306,6 +310,31 @@ public class BoardGameController {
         ));
     }
 
+    @PutMapping("/return-all")
+    @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
+    @Transactional()
+    public ResponseEntity<List<GameReturnResponse>> returnAllGames() {
+        List<BoardGame> updatedGames = boardGameRepository.findAll().stream()
+                .filter(game -> game.getAvailableCopies() == null || !game.getAvailableCopies().equals(game.getQuantity()))
+                .peek(game -> game.setAvailableCopies(game.getQuantity()))
+                .collect(Collectors.toList());
+
+        boardGameRepository.saveAll(updatedGames);
+
+        return ResponseEntity.ok(updatedGames.stream()
+                .map(game -> new GameReturnResponse(game.getId(), game.getName(), game.getQuantity()))
+                .collect(Collectors.toList()));
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GameReturnResponse {
+        private Long id;
+        private String name;
+        private Integer quantity;
+    }
+
     @PostMapping("/import")
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(propagation = Propagation.NESTED)
@@ -323,7 +352,7 @@ public class BoardGameController {
 
                 try {
                     game.setQuantity(parseQuantity(record.get("Quantity")));
-                    game.setAvailableCopies(game.getAvailableCopies());
+                    game.setAvailableCopies(game.getQuantity());
                 }
                 catch (NumberFormatException e) {
                     // Let the error go
@@ -350,9 +379,12 @@ public class BoardGameController {
                 } catch (NumberFormatException e) {
                     // Let the error go
                 }
-                game.setGenre(record.get("Genres"));
-                game.setDescription(record.get("Quick Description"));
-                game.setInternalNotes(record.get("Notes"));
+                if (record.get("Genres") != null)
+                    game.setGenre(record.get("Genres").trim());
+                if (record.get("Quick Description") != null)
+                    game.setDescription(record.get("Quick Description").trim());
+                if (record.get("Notes") != null)
+                    game.setInternalNotes(record.get("Notes").trim());
 
                 // Save the entity in the DB
                 boardGameRepository.save(game);
@@ -406,7 +438,7 @@ public class BoardGameController {
             if (timePart.contains("min")) {
                 return Integer.parseInt(timePart.replace("mins", "").replace("min", "").trim());
             }
-            return 0; // Default to 0 if unable to parse
+            return Integer.parseInt(timePart.trim()); // Default to 0 if unable to parse
         } catch (NumberFormatException e) {
             return 0;
         }

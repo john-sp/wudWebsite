@@ -87,6 +87,20 @@ export const AuthProvider: React.FC = ({ children }) => {
         }
     };
 
+    const version = async () => {
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/version`, {
+                method: 'GET',
+            });
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error getting project version:', error);
+        }
+        return null;
+    };
+
     useEffect(() => {
         refresh();
         // Set interval to refresh token before it expires
@@ -96,7 +110,7 @@ export const AuthProvider: React.FC = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ auth, login, logout }}>
+        <AuthContext.Provider value={{ auth, login, logout, version }}>
             {children}
         </AuthContext.Provider>
     );

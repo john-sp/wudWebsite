@@ -243,12 +243,27 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
         return null;
     };
 
+    const returnAllGames = async () => {
+        const response = await fetch(`${API_BASE_URL}/games/return-all`, {
+            method: 'PUT',
+            headers: auth ? { 'Authorization': `Bearer ${auth.token}` } : {},
+        });
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else {
+            console.error('Failed to return games: ', response.status);
+        }
+
+        return null;
+    };
+
     useEffect(() => {
         fetchGames();
     }, [auth]);
 
     return (
-        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame, updateFiltersAndSort, importFile, exportFile, fetchGameStats }}>
+        <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame, updateFiltersAndSort, importFile, exportFile, fetchGameStats, returnAllGames }}>
     {children}
     </GameManagerContext.Provider>
 );

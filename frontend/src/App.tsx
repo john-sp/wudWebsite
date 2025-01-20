@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, use} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -13,16 +13,18 @@ import {Alert} from "@/components/ui/alert";
 
 const TopBar = () => {
     const { auth } = useAuth();
+    const { exportFile } = useGameManager();
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
     const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
     const [showStats, setShowStats] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [showImport, setShowImport] = useState(false);
     const [isAddGameOpen, setIsAddGameOpen] = useState(false);
+    const [showReturnAll, setShowReturnAll] = useState(false);
 
     const handleAddGameClick = () => setIsAddGameOpen(true);
-    const handleExport = () => {/* API call */};
-    const handleReturnAll = () => {/* API call */};
+    const handleExport = () => exportFile();
+    const handleReturnAll = () => setShowReturnAll(true);
 
     const MenuItems = () => (
         <>
@@ -145,6 +147,7 @@ const TopBar = () => {
             </div>
 
             <StatsPopup isOpen={showStats} onClose={() => setShowStats(false)} />
+            <ReturnAllPopup isOpen={showReturnAll} onClose={() => setShowReturnAll(false)} />
             <FilterPopup isOpen={showFilters} onClose={() => setShowFilters(false)} />
             <ImportPopup isOpen={showImport} onClose={() => setShowImport(false)} />
             <AddGamePopup isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
@@ -370,6 +373,60 @@ const FilterPopup = ({isOpen, onClose}) => {
     );
 };
 
+const ReturnAllPopup = ({isOpen, onClose}) => {
+    const {returnAllGames} = useGameManager();
+    const [stats, setStats] = useState(null);
+    const [errors, setErrors] = useState(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setStats(null);
+            try{
+            (async () => {
+                const data = await returnAllGames();
+                setStats(data);
+            })();}
+            catch (error) {
+                setErrors(error);
+            }
+        }
+    }, [isOpen, returnAllGames]);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Games Marked as Returned</DialogTitle>
+                </DialogHeader>
+                {!stats ? (
+                    <div>
+                        <Skeleton className="h-6 mb-2 bg-slate-500" />
+                        <Skeleton className="h-6 mb-2 bg-slate-500 " />
+                        <Skeleton className="h-6 mb-2 bg-slate-500" />
+                        <Skeleton className="h-6 mb-2 bg-slate-500" />
+                        <Skeleton className="h-6 mb-2 bg-slate-500" />
+                    </div>
+                ) : errors ? (
+                    <p className="error">Error: {errors}</p>
+                ) : stats.length === 0 ? (
+                    // If no games are returned, show a custom message
+                    <p>No games were updated.</p>
+                    ) : (
+                    <div className="games-list overflow-y-auto max-h-96">
+                        <ul>
+                        {stats.map(game => (
+                            <li key={game.id}>
+                                <strong>{game.name}</strong> - Quantity: {game.quantity}
+                            </li>
+                        ))}
+                        </ul>
+                    </div>
+)}
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 const ImportPopup = ({isOpen, onClose}) => {
     const [file, setFile] = useState(null);
     const {importFile, loading} = useGameManager();
@@ -414,11 +471,12 @@ const ImportPopup = ({isOpen, onClose}) => {
 
 
 const LoginButton = () => {
-    const { auth, login, logout } = useAuth();
+    const { auth, login, logout, version } = useAuth();
     const [showLogin, setShowLogin] = useState(false);
     const [error, setError] = useState('');
     const [credentials, setCredentials] = useState({ username: '', password: '' });
     const loginRef = useRef(null);
+    const [appVersion, setAppVersion] = useState('Unknown');
 
 
     useEffect(() => {
@@ -436,6 +494,13 @@ const LoginButton = () => {
     useEffect(() => {
         if (auth || !showLogin) {
             setError('');
+        }
+        if (showLogin) {
+            (async () => {
+                const data = await version();
+                setAppVersion(data.version);
+
+            })();
         }
     }, [auth, showLogin]);
 
@@ -478,6 +543,7 @@ const LoginButton = () => {
                                     onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                                 />
                                 <Button type="submit">Login</Button>
+                                <p className="text-xs">App version: {appVersion}</p>
                             </form>
                         </div>
                     )}
@@ -492,20 +558,28 @@ const LoginButton = () => {
 };
 
 const GameCard = ({ key, game }) => {
-    const {auth} = useAuth();
+    const { auth } = useAuth();
     const { deleteGame, checkout, returnGame } = useGameManager();
     const [isEditing, setIsEditing] = useState(false);
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
     const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
+
     const handleDelete = async () => {
         deleteGame(game.id);
     };
+
     const handleCheckout = async () => {
         checkout(game.id);
     };
+
     const handleReturn = async () => {
         returnGame(game.id);
     };
+
+    // Disable logic
+    const isReturnDisabled = game.availableCopies === game.quantity;
+    const isCheckoutDisabled = game.availableCopies === null || game.availableCopies <= 0;
+
     return (
         <>
             <Card className="w-full max-w-sm">
@@ -516,27 +590,39 @@ const GameCard = ({ key, game }) => {
                         className="w-full h-48 object-cover rounded-t-lg text-center"
                     />
                     {isHost && (
-                    <div className="absolute top-2 right-2 grid grid-cols-1 gap-y-1">
-                        <div className="top-2 right-2 grid-cols-2 gap-1 grid rounded-lg">
-                            <Button  title="Checkout Game" variant="constructive" size="icon" onClick={handleCheckout} >
-                                <Plus className="w-4 h-4" />
-                            </Button>
-                            <Button  title="Return Game" variant="destructive" size="icon" onClick={handleReturn}>
-                                <Minus className="w-4 h-4" />
-                            </Button>
-                        </div>
+                        <div className="absolute top-2 right-2 grid grid-cols-1 gap-y-1">
+                            <div className="top-2 right-2 grid-cols-2 gap-1 grid rounded-lg">
+                                <Button
+                                    title="Checkout Game"
+                                    variant="constructive"
+                                    size="icon"
+                                    onClick={handleCheckout}
+                                    disabled={isCheckoutDisabled} // Disable if no available copies
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    title="Return Game"
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={handleReturn}
+                                    disabled={isReturnDisabled} // Disable if quantity equals available copies
+                                >
+                                    <Minus className="w-4 h-4" />
+                                </Button>
+                            </div>
 
-                    {isAdmin && (
-                        <div className="top-6 right-2 flex gap-1 rounded-lg">
-                            <Button  variant="outline" size="icon" onClick={() => setIsEditing(true)}>
-                                <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button  variant="outline" size="icon" onClick={handleDelete}>
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    )}
-                    </div>)}
+                            {isAdmin && (
+                                <div className="top-6 right-2 flex gap-1 rounded-lg">
+                                    <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
+                                        <Pencil className="w-4 h-4" />
+                                    </Button>
+                                    <Button variant="outline" size="icon" onClick={handleDelete}>
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>)}
                 </CardHeader>
                 <CardContent className="text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
@@ -548,6 +634,7 @@ const GameCard = ({ key, game }) => {
                     </p>
                     <p className="mt-2">{game.description}</p>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
+                    <p className="text-sm">Quantity Owned: {game.quantity}</p>
                     <p className="text-sm">Available: {game.availableCopies}</p>
                     <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
                     {(isHost) && (
@@ -559,6 +646,7 @@ const GameCard = ({ key, game }) => {
         </>
     );
 };
+
 
 const AddGamePopup = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     // const {auth} = useAuth();

@@ -15,6 +15,7 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+application-version: ^project.version^
 
 server:
   port: 8080

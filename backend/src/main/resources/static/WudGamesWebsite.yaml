@@ -52,6 +52,22 @@ paths:
                 $ref: '#/components/schemas/AuthDTO'
         '401':
           description: Invalid credentials.
+  /auth/version:
+    get:
+      summary: Get the current project version
+      description: Returns the current version of the project.
+      responses:
+        '200':
+          description: Successfully retrieved the project version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: The current version of the project
+                    example: "1.0.0"
   /auth/refresh:
     post:
       summary: Refresh JWT Token
@@ -143,8 +159,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         '403':
           $ref: "#/components/responses/Forbidden"
-
-
   /games/{id}:
     parameters:
       - name: id
@@ -386,6 +400,8 @@ paths:
             format: date
           required: false
           in: path
+      tags:
+        - Unauthenticated
       responses:
         '200':
           description: Successfully got games statistics
@@ -414,7 +430,39 @@ paths:
                     format: float
                   totalAvailableCopies:
                     type: integer
-
+  /games/return-all:
+    put:
+      summary: Mark all games as returned
+      description: Sets the available copies of all games equal to their quantity and returns a list of games that were updated.
+      tags:
+        - Host
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully returned games and listed updated games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: The ID of the game
+                    name:
+                      type: string
+                      description: The name of the game
+                    quantity:
+                      type: integer
+                      description: The quantity of the game returned
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '500':
+          description: Internal server error
 
   #  /steam-game:
   #    get:

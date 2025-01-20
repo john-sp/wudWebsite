@@ -1,6 +1,7 @@
 package edu.wisc.union.websiteBackend.auth;
 
 import io.jsonwebtoken.JwtException;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,9 @@ public class AuthController {
 
     private final UserProperties userProperties;
     private final JwtUtil jwtUtil;
+
+    @Value("${application-version:unknown}")
+    private String version = "";
 
     public AuthController(UserProperties userProperties, JwtUtil jwtUtil) {
         this.userProperties = userProperties;
@@ -84,4 +88,16 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/version")
+    public ResponseEntity<VersionResponse> getVersion() {
+        return ResponseEntity.ok(new VersionResponse(version));
+    }
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VersionResponse {
+        private String version;
+    }
 }
