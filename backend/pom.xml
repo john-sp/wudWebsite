@@ -186,7 +186,7 @@
 				<executions>
 					<execution>
 						<id>copy-resources</id>
-						<phase>package</phase>
+						<phase>process-resources</phase>
 						<goals>
 							<goal>resources</goal>
 						</goals>

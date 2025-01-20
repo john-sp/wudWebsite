@@ -1,6 +1,7 @@
 package edu.wisc.union.websiteBackend.jpa;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,7 +24,11 @@ public class BoardGame {
     private Integer availableCopies;
     private String genre;
     private String boxImageUrl;
+
+    @Column(length = 1024, columnDefinition = "VARCHAR(1024)")
+    @Size(max = 1024)
     private String description;
+
     private Integer quantity;
     private Integer checkoutCount;
     private String internalNotes;
