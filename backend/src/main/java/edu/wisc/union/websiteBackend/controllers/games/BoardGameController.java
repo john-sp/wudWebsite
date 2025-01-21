@@ -59,8 +59,10 @@ public class BoardGameController {
         List<BoardGame> games = boardGameRepository.findFiltered(name, genre, minPlayTime, maxPlayTime, playerCount, Sort.by("name"));
 
         if(jwtUtil.getCurrentAccessLevel().equals(JwtUtil.AccessLevel.ANONYMOUS)) {
-            for (BoardGame game : games)
+            for (BoardGame game : games) {
                 game.setInternalNotes(null);
+                game.setCheckoutCount(null);
+            }
         }
 //        List<BoardGame> games = boardGameRepository.findAll();
         return ResponseEntity.ok(games);
@@ -267,6 +269,7 @@ public class BoardGameController {
     }
 
     @GetMapping("/stats")
+    @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getGameNightStats(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {

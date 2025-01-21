@@ -52,15 +52,17 @@ const TopBar = () => {
                 </>
             )}
             {isHost && (
-                <DropdownMenuItem onClick={handleReturnAll}>
-                    <RefreshCw className="w-4 h-4 mr-2" /> Return All
-                </DropdownMenuItem>
+                <>
+                    <DropdownMenuItem onClick={handleReturnAll}>
+                        <RefreshCw className="w-4 h-4 mr-2" /> Return All
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowStats(true)}>
+                        <BarChart className="w-4 h-4 mr-2" /> Stats
+                    </DropdownMenuItem>
+                </>
             )}
             <DropdownMenuItem onClick={() => setShowFilters(true)}>
                 <Filter className="w-4 h-4 mr-2" /> Filter & Sort
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setShowStats(true)}>
-                <BarChart className="w-4 h-4 mr-2" /> Stats
             </DropdownMenuItem>
         </>
     );
@@ -123,15 +125,17 @@ const TopBar = () => {
                     </>
                 )}
                 {isHost && (
-                    <Button variant="outline" onClick={handleReturnAll} className="flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4" /> Return All
-                    </Button>
+                    <>
+                        <Button variant="outline" onClick={handleReturnAll} className="flex items-center gap-2">
+                            <RefreshCw className="w-4 h-4" /> Return All
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowStats(true)} className="flex items-center gap-2">
+                            <BarChart className="w-4 h-4" /> Stats
+                        </Button>
+                    </>
                 )}
                 <Button variant="outline" onClick={() => setShowFilters(true)} className="flex items-center gap-2">
                     <Filter className="w-4 h-4" /> Filter & Sort
-                </Button>
-                <Button variant="outline" onClick={() => setShowStats(true)} className="flex items-center gap-2">
-                    <BarChart className="w-4 h-4" /> Stats
                 </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -614,9 +618,11 @@ const GameCard = ({ key, game }) => {
                     </div>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
                     <p className="text-sm">Available: {game.availableCopies} / {game.quantity}</p>
-                    <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
                     {isHost && (
-                        <p className="mt-2 text-sm italic">{game.internalNotes}</p>
+                        <>
+                            <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
+                            <p className="mt-2 text-sm italic">{game.internalNotes}</p>
+                        </>
                     )}
                 </CardContent>
 

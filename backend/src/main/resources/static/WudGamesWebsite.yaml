@@ -18,7 +18,7 @@ tags:
     description: Calls that only the admins can make can make
 
 servers:
-  - url: 'http://wudgames.minecraft.best:8080'
+  - url: 'http://wudgames.minecraft.best:8000/api'
 paths:
   /auth/login:
     post:
@@ -56,6 +56,9 @@ paths:
     get:
       summary: Get the current project version
       description: Returns the current version of the project.
+      operationId: getVersion
+      tags:
+        - Unauthenticated
       responses:
         '200':
           description: Successfully retrieved the project version
@@ -401,7 +404,7 @@ paths:
           required: false
           in: path
       tags:
-        - Unauthenticated
+        - Host
       responses:
         '200':
           description: Successfully got games statistics
