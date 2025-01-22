@@ -597,15 +597,8 @@ const GameCard = ({ key, game }) => {
 
     return (
         <>
-            <Card className="w-full max-w-sm relative">
-                <CardHeader className="relative">
-                    <img
-                        src={game.boxImageUrl || "/api/placeholder/200/200"}
-                        alt={game.name}
-                        className="w-full h-48 object-cover rounded-t-lg text-center"
-                    />
-                </CardHeader>
-                <CardContent className="text-left">
+            <Card className={`w-full max-w-sm relative flex flex-row  ${isHost ? "pb-12" : ""}`}>
+                <div className="w-2/3 p-2 text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
                     <p className="text-sm">
                         {game.minPlayerCount}
@@ -624,17 +617,26 @@ const GameCard = ({ key, game }) => {
                             <p className="mt-2 text-sm italic">{game.internalNotes}</p>
                         </>
                     )}
-                </CardContent>
+                </div>
+                <div className="relative w-1/3 max-h-[85%]">
+                    {game.boxImageUrl && (
+                        <img
+                            src={game.boxImageUrl || "/api/placeholder/200/200"}
+                            alt={game.name}
+                            className="w-full object-cover rounded-tr-lg text-center"
+                        />)}
+                </div>
 
                 {isHost && (
-                    <div className="absolute bottom-0 rounded-tl-md right-0 px-2 py-2 border-t border-l flex justify-end gap-2">
+                    <div
+                        className="absolute bottom-0 rounded-tl-md right-0 px-2 py-2 border-t border-l flex justify-between gap-2">
                         {isAdmin && (
                             <div className="flex gap-2">
                                 <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
-                                    <Pencil className="w-4 h-4" />
+                                    <Pencil className="w-4 h-4"/>
                                 </Button>
                                 <Button variant="outline" size="icon" onClick={() => setShowDeleteDialog(true)}>
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-4 h-4"/>
                                 </Button>
                             </div>
                         )}
@@ -646,7 +648,7 @@ const GameCard = ({ key, game }) => {
                                 onClick={handleCheckout}
                                 disabled={isCheckoutDisabled}
                             >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-4 h-4"/>
                             </Button>
                             <Button
                                 title="Return Game"
@@ -655,16 +657,17 @@ const GameCard = ({ key, game }) => {
                                 onClick={handleReturn}
                                 disabled={isReturnDisabled}
                             >
-                                <Minus className="w-4 h-4" />
+                                <Minus className="w-4 h-4"/>
                             </Button>
                         </div>
                     </div>
                 )}
             </Card>
-            <EditGamePopup isOpen={isEditing} game={game} onClose={() => setIsEditing(false)} />
+            <EditGamePopup isOpen={isEditing} game={game} onClose={() => setIsEditing(false)}/>
 
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+                <AlertDialogContent
+                    className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Game</AlertDialogTitle>
                         <AlertDialogDescription>
