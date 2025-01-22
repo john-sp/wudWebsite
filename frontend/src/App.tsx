@@ -618,12 +618,12 @@ const GameCard = ({ key, game }) => {
                         </>
                     )}
                 </div>
-                <div className="relative w-1/3 max-h-[85%]">
+                <div className="relative w-1/3">
                     {game.boxImageUrl && (
                         <img
                             src={game.boxImageUrl || "/api/placeholder/200/200"}
                             alt={game.name}
-                            className="w-full object-cover rounded-tr-lg text-center"
+                            className="w-full max-h-[85%] object-cover rounded-tr-lg text-center"
                         />)}
                 </div>
 
