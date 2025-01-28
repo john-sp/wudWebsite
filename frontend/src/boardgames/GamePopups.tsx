@@ -89,10 +89,10 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                 name: data.name,
                 boxImageUrl: data.imageurl || prev.boxImageUrl,
                 description: data.short_description || prev.description,
-                minPlayerCount: data.minPlayers,
-                maxPlayerCount: data.maxPlayers,
-                maxPlaytime: data.maxPlaytime,
-                minPlaytime: data.minPlaytime,
+                minPlayerCount: data.minplayers,
+                maxPlayerCount: data.maxplayers,
+                maxPlaytime: data.maxplaytime,
+                minPlaytime: data.minplaytime,
             }));
         } catch (error) {
             console.error('Error fetching BGG data:', error);
