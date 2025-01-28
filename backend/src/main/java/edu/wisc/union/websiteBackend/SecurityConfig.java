@@ -24,6 +24,9 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.codec.xml.Jaxb2XmlDecoder;
+import org.springframework.http.codec.xml.Jaxb2XmlEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -104,5 +107,13 @@ public class SecurityConfig {
         return Collections.emptyList();
     }
 
-
+    @Bean
+    public WebClient webClient(WebClient.Builder builder) {
+        return builder
+                .codecs(configurer -> {
+                    configurer.defaultCodecs().jaxb2Decoder(new Jaxb2XmlDecoder());
+                    configurer.defaultCodecs().jaxb2Encoder(new Jaxb2XmlEncoder());
+                })
+                .build();
+    }
 }

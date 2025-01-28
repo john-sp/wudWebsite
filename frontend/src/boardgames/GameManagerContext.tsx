@@ -1,10 +1,24 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '@/AuthContext';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:8000/api';
+
+export interface Game {
+    id: number;
+    name: string;
+    genre?: string;
+    description?: string;
+    minPlayerCount?: number;
+    maxPlayerCount?: number;
+    minPlaytime?: number;
+    maxPlaytime?: number;
+    boxImageUrl?: string;
+    quantity?: number;
+    internalNotes?: string;
+}
 
 interface GameManagerProps {
-    game: any; // Replace `any` with the specific type for `game` if possible
+    game: Game; // Replace `any` with the specific type for `game` if possible
 }
 
 export const GameManagerContext = createContext(null);

@@ -160,8 +160,10 @@ public class BoardGameController {
         updates.forEach((key, value) -> {
             Field field = ReflectionUtils.findField(BoardGame.class, key);
             if (field != null) {
-                field.setAccessible(true);
-                ReflectionUtils.setField(field, game, value);
+                if (!field.getName().equals("id")) {
+                    field.setAccessible(true);
+                    ReflectionUtils.setField(field, game, value);
+                }
             }
         });
 
