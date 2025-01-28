@@ -1,4 +1,6 @@
 import BoardgameMain from "@/boardgames/BoardgameMain";
+import {Route} from "react-router";
+import ConsolegameMain from "@/consolegames/ConsolegameMain";
 
 
 export const setTheme = (theme: 'light' | 'dark' | 'auto') => {
@@ -27,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const App = () => {
     return (
-        <BoardgameMain />
+        <Routes>
+            <Route index element={<BoardgameMain />} />
+            <Route path="console" element={<ConsolegameMain />} />
+        </Routes>
     );
 };
 
