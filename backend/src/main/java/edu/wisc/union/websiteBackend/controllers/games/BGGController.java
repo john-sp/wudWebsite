@@ -21,7 +21,7 @@ public class BGGController {
     }
 
     @GetMapping("/details")
-    public Mono<BGGObjects.BoardGameDetailsItems> getBoardGameDetails(@RequestParam String id) {
+    public Mono<BGGObjects.BoardGameDetails> getBoardGameDetails(@RequestParam String id) {
         return boardGameService.getBoardGameDetails(id);
     }
 }

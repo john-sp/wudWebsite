@@ -12,12 +12,16 @@ import java.util.List;
 
 @Service
 public class BoardGameService {
-    private final WebClient webClient = WebClient.builder()
+    private final WebClient searchClient = WebClient.builder()
             .baseUrl("https://boardgamegeek.com")
             .build();
+    private final WebClient gameClient = WebClient.builder()
+            .baseUrl("https://api.geekdo.com")
+            .build();
+
 
     public Mono<List<BGGObjects.BoardGameSearchResult>> searchBoardGames(String gameName) {
-        return webClient.get()
+        return searchClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search/boardgame")
 
@@ -33,12 +37,17 @@ public class BoardGameService {
     }
 
 
-    public Mono<BGGObjects.BoardGameDetailsItems> getBoardGameDetails(String id) {
-        return webClient.get()
+    public Mono<BGGObjects.BoardGameDetails> getBoardGameDetails(String id) {
+        Mono<BGGObjects.BoardGameDetailsItem> object =  gameClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/xmlapi/boardgame/" + id)
+                        .path("api/geekitems")
+                        .queryParam("objectid", id)
+                        .queryParam("nosession", "1")
+                        .queryParam("showcount", "10")
+                        .queryParam("objecttype", "thing")
                         .build())
                 .retrieve()
-                .bodyToMono(BGGObjects.BoardGameDetailsItems.class);
+                .bodyToMono(BGGObjects.BoardGameDetailsItem.class);
+        return object.map(BGGObjects.BoardGameDetailsItem::getItem);
     }
 }

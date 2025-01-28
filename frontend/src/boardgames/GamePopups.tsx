@@ -84,15 +84,15 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
         try {
             const response = await fetch(`/api/bgg/details?id=${selectedGame.id}`);
             const data = await response.json();
-            const data2 = data.items[0];
             setFormData((prev) => ({
                 ...prev,
-                name: data2.name,
-                boxImageUrl: data2.thumbnail || prev.boxImageUrl,
-                minPlayerCount: data2.minPlayers,
-                maxPlayerCount: data2.maxPlayers,
-                maxPlaytime: data2.maxPlaytime,
-                minPlaytime: data2.minPlaytime,
+                name: data.name,
+                boxImageUrl: data.imageurl || prev.boxImageUrl,
+                description: data.short_description || prev.description,
+                minPlayerCount: data.minPlayers,
+                maxPlayerCount: data.maxPlayers,
+                maxPlaytime: data.maxPlaytime,
+                minPlaytime: data.minPlaytime,
             }));
         } catch (error) {
             console.error('Error fetching BGG data:', error);
