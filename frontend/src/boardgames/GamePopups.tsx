@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogDescription
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 interface Game {
@@ -115,6 +122,15 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>{game ? `Edit ${game.name || 'Game'}` : 'Add Game'}</DialogTitle>
+                    {showBGGSearch ? (
+                        <DialogDescription>
+                            Search for a game using BoardGameGeek. Populates name, playtime and player count.
+                        </DialogDescription>
+                        ):(
+                            <DialogDescription>
+                                Adjust fields as needed.
+                            </DialogDescription>
+                        )}
                 </DialogHeader>
 
                 {showBGGSearch ? (
@@ -123,7 +139,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                                 type="text"
                                 placeholder="Search for a game on BGG"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => setSearchQuery(formData.name)}
                                 className="p-2 w-full border rounded mb-2"
                             />
                             <Button onClick={searchBGG} disabled={isSearching}>

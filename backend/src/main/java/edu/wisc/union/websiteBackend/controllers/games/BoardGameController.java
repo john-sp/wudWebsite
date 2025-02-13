@@ -352,8 +352,12 @@ public class BoardGameController {
 
             for (CSVRecord record : records) {
                 // Map CSV fields to the BoardGame entity
+
                 BoardGame game = new BoardGame();
                 game.setName(record.get("Title").trim());
+
+                if (boardGameRepository.existsByNameIgnoreCase(game.getName()))
+                    continue;
 
                 try {
                     game.setQuantity(parseQuantity(record.get("Quantity")));
@@ -388,6 +392,8 @@ public class BoardGameController {
                     game.setGenre(record.get("Genres").trim());
                 if (record.get("Quick Description") != null)
                     game.setDescription(record.get("Quick Description").trim());
+                if (record.get("Box Art URL") != null)
+                    game.setBoxImageUrl(record.get("Box Art URL").trim());
                 if (record.get("Notes") != null)
                     game.setInternalNotes(record.get("Notes").trim());
 

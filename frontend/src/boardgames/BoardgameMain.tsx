@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, Menu, Sun, Moon} from 'lucide-react';
 import {Game, GameManagerProvider, useGameManager} from "./GameManagerContext";
@@ -21,6 +21,16 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {AddGamePopup, EditGamePopup} from "@/boardgames/GamePopups";
+
+interface Filters {
+    name: string;
+    genre: string;
+    minPlaytime?: number;
+    playerCount?: number;
+}
+interface GameCardProps {
+    game: Game;
+}
 
 const TopBar = () => {
     const { auth } = useAuth();
@@ -209,6 +219,9 @@ const StatsPopup = ({ isOpen, onClose }) => {
             <DialogContent className="sm:max-w-[425px] bg-background-light dark:bg-background-dark">
                 <DialogHeader>
                     <DialogTitle className="text-text-light dark:text-text-dark">Game Library Statistics</DialogTitle>
+                    <DialogDescription>
+                        View statistics that we track about games over a period of time
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="mb-4 grid grid-cols-2 gap-4">
                     <div>
@@ -300,28 +313,32 @@ const StatsPopup = ({ isOpen, onClose }) => {
     );
 };
 
-const FilterPopup = ({isOpen, onClose}) => {
-    const [filters, setFilters] = useState({
-        name: '',
-        genre: '',
-        minPlaytime: '',
-        playerCount: ''
+const FilterPopup = ({ isOpen, onClose }) => {
+    const [filters, setFilters] = useState<Filters>({
+        name: "",
+        genre: "",
+        minPlaytime: undefined,
+        playerCount: undefined,
     });
-    const [sortField, setSortField] = useState('name');
-    const [sortDirection, setSortDirection] = useState('asc');
-    const {updateFiltersAndSort} = useGameManager();
+
+    const [sortField, setSortField] = useState<"name" | "minPlayerCount" | "minPlaytime" | "checkoutCount">("name");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    const { updateFiltersAndSort } = useGameManager();
 
     const handleApply = () => {
-        updateFiltersAndSort(filters, {field: sortField, direction: sortDirection});
+        updateFiltersAndSort(filters, { field: sortField, direction: sortDirection });
         onClose();
     };
 
     return (
-
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" >
                 <DialogHeader>
                     <DialogTitle>Filter & Sort Games</DialogTitle>
+                    <DialogDescription>
+                        Adjust filters and sorting to refine the game list.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4">
                     <div>
@@ -330,7 +347,7 @@ const FilterPopup = ({isOpen, onClose}) => {
                             type="text"
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={filters.name}
-                            onChange={(e) => setFilters({...filters, name: e.target.value})}
+                            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
                         />
                     </div>
                     <div>
@@ -339,7 +356,7 @@ const FilterPopup = ({isOpen, onClose}) => {
                             type="text"
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={filters.genre}
-                            onChange={(e) => setFilters({...filters, genre: e.target.value})}
+                            onChange={(e) => setFilters({ ...filters, genre: e.target.value })}
                         />
                     </div>
                     <div>
@@ -347,8 +364,10 @@ const FilterPopup = ({isOpen, onClose}) => {
                         <input
                             type="number"
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
-                            value={filters.minPlaytime}
-                            onChange={(e) => setFilters({...filters, minPlaytime: e.target.value})}
+                            value={filters.minPlaytime ?? ""}
+                            onChange={(e) =>
+                                setFilters({ ...filters, minPlaytime: e.target.value ? parseInt(e.target.value, 10) : undefined })
+                            }
                         />
                     </div>
                     <div>
@@ -356,17 +375,18 @@ const FilterPopup = ({isOpen, onClose}) => {
                         <input
                             type="number"
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
-                            value={filters.playerCount}
-                            onChange={(e) => setFilters({...filters, playerCount: e.target.value})}
+                            value={filters.playerCount ?? ""}
+                            onChange={(e) =>
+                                setFilters({ ...filters, playerCount: e.target.value ? parseInt(e.target.value, 10) : undefined })
+                            }
                         />
                     </div>
-                    {/* Add more filter fields */}
                     <div>
                         <label className="block text-sm font-medium">Sort By</label>
                         <select
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={sortField}
-                            onChange={(e) => setSortField(e.target.value)}
+                            onChange={(e) => setSortField(e.target.value as "name" | "minPlayerCount" | "minPlaytime" | "checkoutCount")}
                         >
                             <option value="name">Name</option>
                             <option value="minPlayerCount">Player Count</option>
@@ -379,7 +399,7 @@ const FilterPopup = ({isOpen, onClose}) => {
                         <select
                             className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
                             value={sortDirection}
-                            onChange={(e) => setSortDirection(e.target.value)}
+                            onChange={(e) => setSortDirection(e.target.value as "asc" | "desc")}
                         >
                             <option value="asc">Ascending</option>
                             <option value="desc">Descending</option>
@@ -418,6 +438,9 @@ const ReturnAllPopup = ({isOpen, onClose}) => {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Games Marked as Returned</DialogTitle>
+                    <DialogDescription>
+                        These games were not marked as returned already, do you have extra wiscards?
+                    </DialogDescription>
                 </DialogHeader>
                 {!stats ? (
                     <div>
@@ -464,6 +487,9 @@ const ImportPopup = ({isOpen, onClose}) => {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Import Games</DialogTitle>
+                    <DialogDescription>
+                        Easy way to add lots of games to the database. Duplicates (by name) are skipped.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4">
                     <a href="importTemplate.csv" download="WUDGames-ImportTemplate">
@@ -577,7 +603,7 @@ const LoginButton = () => {
     );
 };
 
-const GameCard = ({ key, game }) => {
+const GameCard: React.FC<GameCardProps> = ({ game }) => {
     const { auth } = useAuth();
     const { deleteGame, checkout, returnGame, updateGame } = useGameManager();
     const [editingGame, setEditingGame] = useState<Game | null>(null);

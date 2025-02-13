@@ -70,6 +70,17 @@ export const DialogTitle: React.FC<DialogProps> = ({ className, children }) => {
     );
 };
 
+export const DialogDescription = React.forwardRef<
+    React.ElementRef<typeof DialogPrimitive.Description>,
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+    <DialogPrimitive.Description
+        ref={ref}
+        className={clsx("text-sm text-muted-foreground", className)}
+        {...props}
+    />
+))
+
 export const DialogFooter: React.FC<DialogProps> = ({ className, children }) => {
     return (
         <div

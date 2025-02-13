@@ -21,36 +21,39 @@ interface GameManagerProps {
     game: Game; // Replace `any` with the specific type for `game` if possible
 }
 
+interface SortData {
+    field: keyof Game;
+    direction: 'asc' | 'desc';
+}
+
+interface Filters {
+    name?: string;
+    genre?: string;
+    minPlayTime?: number;
+    maxPlayTime?: number;
+    playerCount?: number;
+}
+
 export const GameManagerContext = createContext(null);
 
 export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) => {
-    const [games, setGames] = useState([]);
+    const [allGames, setAllGames] = useState<Game[]>([]);
+    const [games, setGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
     const { auth } = useAuth();
-    let queryParams = new URLSearchParams();
-    let [sortData, setSortData] = useState('');
+    const [filters, setFilters] = useState<Filters>({});
+    const [sortData, setSortData] = useState<SortData>({ field: "name", direction: "asc" });
 
     const fetchGames = async () => {
         setLoading(true);
         try {
-            const queryString = queryParams.toString();
-            const response = await fetch(`${API_BASE_URL}/games${queryString ? `?${queryString}` : ''}`, {
-                headers: auth ? { 'Authorization': `Bearer ${auth.token}` } : {},
+            const response = await fetch(`${API_BASE_URL}/games`, {
+                headers: auth ? { Authorization: `Bearer ${auth.token}` } : {},
             });
             if (response.ok) {
-                let data = await response.json();
-                if (sortData) {
-                    const {field, direction} = sortData;
-                    data = data.sort((a, b) => {
-                        const valueA = a[field];
-                        const valueB = b[field];
-
-                        if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-                        if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-                        return 0;
-                    });
-                }
-                setGames(data);
+                const data: Game[] = await response.json();
+                setAllGames(data);
+                applyFiltersAndSort(data);
             } else {
                 console.error('Failed to fetch games');
             }
@@ -59,6 +62,66 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
         } finally {
             setLoading(false);
         }
+    };
+
+    const getComparableValue = (value: any) => {
+        return typeof value === 'string' ? value.toLowerCase() : value;
+    };
+
+    const applyFiltersAndSort = (data: Game[]) => {
+        let filteredGames = data;
+
+        // Apply filtering based on the Spring query logic
+        if (filters) {
+            if (filters.name) {
+                filteredGames = filteredGames.filter((game) =>
+                    game.name.toLowerCase().includes(filters.name!.toLowerCase())
+                );
+            }
+            if (filters.genre) {
+                filteredGames = filteredGames.filter((game) =>
+                    game.genre.toLowerCase().includes(filters.genre!.toLowerCase())
+                );
+            }
+            if (filters.minPlayTime !== undefined) {
+                filteredGames = filteredGames.filter(
+                    (game) => game.minPlaytime >= filters.minPlayTime!
+                );
+            }
+            if (filters.maxPlayTime !== undefined) {
+                filteredGames = filteredGames.filter(
+                    (game) => game.maxPlaytime <= filters.maxPlayTime!
+                );
+            }
+            if (filters.playerCount !== undefined) {
+                filteredGames = filteredGames.filter(
+                    (game) =>
+                        game.minPlayerCount <= filters.playerCount! &&
+                        game.maxPlayerCount >= filters.playerCount!
+                );
+            }
+        }
+
+        // Apply client-side sorting
+        if (sortData) {
+            const { field, direction } = sortData;
+            filteredGames.sort((a, b) => {
+                const valueA = a[field];
+                const valueB = b[field];
+
+                if (valueA === undefined) return 1;
+                if (valueB === undefined) return -1;
+
+                const compA = getComparableValue(valueA);
+                const compB = getComparableValue(valueB);
+
+                if (compA < compB) return direction === 'asc' ? -1 : 1;
+                if (compA > compB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        setGames(filteredGames);
     };
 
     const addGame = async (gameData) => {
@@ -163,28 +226,10 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
             console.error('Error update game:', error);
         }
     };
-    const updateFiltersAndSort = async (filters, sort) => {
-        setLoading(true);
-        try {
-            queryParams = new URLSearchParams();
-            // Add filters to the query string
-            if (filters) {
-                Object.entries(filters).forEach(([key, value]) => {
-                    if (value !== null && value !== undefined) {
-                        if (typeof value === "string" && value) {
-                            queryParams.append(key, value);
-                        }
-                    }
-                });
-            }
 
-            // Perform sorting in TypeScript
-            if (sort)
-                setSortData(sort);
-            fetchGames();
-        } catch (error) {
-            console.error('Error updating filters and sort:', error);
-        }
+    const updateFiltersAndSort = (newFilters: Filters, newSort: SortData | null) => {
+        setFilters(newFilters);
+        setSortData(newSort || { field: "name", direction: "asc" }); // Keep default sort if none is provided
     };
     const importFile = async (file) => {
 
@@ -275,6 +320,12 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
     useEffect(() => {
         fetchGames();
     }, [auth]);
+
+    useEffect(() => {
+        if (allGames.length > 0) {
+            applyFiltersAndSort(allGames);
+        }
+    }, [filters, sortData]);
 
     return (
         <GameManagerContext.Provider value={{ games, loading, fetchGames, addGame, deleteGame, updateGame, checkout, returnGame, updateFiltersAndSort, importFile, exportFile, fetchGameStats, returnAllGames }}>
