@@ -1,6 +1,6 @@
-import BoardgameMain from "@/boardgames/BoardgameMain";
+import BoardgameMain from "./boardgames/BoardgameMain";
 import {Route, Routes, BrowserRouter as Router} from "react-router";
-// import ConsolegameMain from "@/consolegames/ConsolegameMain";
+// import ConsolegameMain from "/consolegames/ConsolegameMain";
 
 
 export const setTheme = (theme: 'light' | 'dark' | 'auto') => {

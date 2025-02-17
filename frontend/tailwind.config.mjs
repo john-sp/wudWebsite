@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // Ensure your components are scanned
+    "./src/**/*.{mjs,js,jsx,ts,tsx}", // Ensure your components are scanned
   ],
   darkMode: 'selector',
   theme: {

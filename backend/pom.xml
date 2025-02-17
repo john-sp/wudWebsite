@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>edu.wisc.union</groupId>
 	<artifactId>websiteBackend</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<name>WUD Games Website Backend</name>
 	<description>Internal Testing Project</description>
 	<url/>
@@ -210,7 +210,7 @@
 							<outputDirectory>${project.basedir}/src/main/resources/static</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${project.basedir}/../frontend/build</directory>
+									<directory>${project.basedir}/../frontend/dist</directory>
 									<includes>
 										<include>**/*</include>
 									</includes>

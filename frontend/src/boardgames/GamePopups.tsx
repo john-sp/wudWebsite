@@ -42,9 +42,10 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
     useEffect(() => {
         if (game) {
             setFormData(game); // Initialize formData when the dialog opens
-            setSearchQuery(formData.name);
+            setSearchQuery(game.name);
         } else {
             setFormData({});
+            setSearchQuery('');
         }
     }, [game]);
 
@@ -139,7 +140,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                                 type="text"
                                 placeholder="Search for a game on BGG"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(formData.name)}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="p-2 w-full border rounded mb-2"
                             />
                             <Button onClick={searchBGG} disabled={isSearching}>

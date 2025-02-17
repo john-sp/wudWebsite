@@ -57,7 +57,6 @@ export const AuthProvider: React.FC = ({ children }) => {
     const refresh = async () => {
         const token = Cookies.get('token');
         if (!token) return;
-        console.log("Running Refresh");
 
         try {
             const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
