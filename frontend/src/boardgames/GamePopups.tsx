@@ -207,7 +207,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                                 type="number"
                                 placeholder="Minimum Players"
                                 name="minPlayerCount"
-                                value={formData.minPlayerCount !== undefined ? formData.minPlayerCount.toString() : ''}
+                                value={formData.minPlayerCount != undefined ? formData.minPlayerCount.toString() : ''}
                                 onChange={handleChange}
                                 min="0"
                                 className="p-2 border rounded"
@@ -216,7 +216,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                                 type="number"
                                 placeholder="Maximum Players"
                                 name="maxPlayerCount"
-                                value={formData.maxPlayerCount !== undefined ? formData.maxPlayerCount.toString() : ''}
+                                value={formData.maxPlayerCount != undefined ? formData.maxPlayerCount.toString() : ''}
                                 onChange={handleChange}
                                 min="0"
                                 className="p-2 border rounded"
@@ -227,7 +227,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                                 type="number"
                                 placeholder="Minimum Playtime"
                                 name="minPlaytime"
-                                value={formData.minPlaytime !== undefined ? formData.minPlaytime.toString() : ''}
+                                value={formData.minPlaytime != undefined ? formData.minPlaytime.toString() : ''}
                                 onChange={handleChange}
                                 min="0"
                                 className="p-2 border rounded"
@@ -236,7 +236,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                                 type="number"
                                 placeholder="Maximum Playtime"
                                 name="maxPlaytime"
-                                value={formData.maxPlaytime !== undefined ? formData.maxPlaytime.toString() : ''}
+                                value={(formData.maxPlaytime != undefined) ? formData.maxPlaytime.toString() : ''}
                                 onChange={handleChange}
                                 min="0"
                                 className="p-2 border rounded"
@@ -254,7 +254,7 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
                             type="number"
                             placeholder="Quantity (optional)"
                             name="quantity"
-                            value={formData.quantity !== undefined ? formData.quantity.toString() : ''}
+                            value={formData.quantity != undefined ? formData.quantity.toString() : ''}
                             onChange={handleChange}
                             min="0"
                             className="p-2 w-full border rounded"

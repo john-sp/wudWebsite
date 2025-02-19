@@ -29,8 +29,7 @@ interface SortData {
 interface Filters {
     name?: string;
     genre?: string;
-    minPlayTime?: number;
-    maxPlayTime?: number;
+    playtime?: number;
     playerCount?: number;
 }
 
@@ -83,14 +82,12 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
                     game.genre.toLowerCase().includes(filters.genre!.toLowerCase())
                 );
             }
-            if (filters.minPlayTime !== undefined) {
+            if (filters.playtime !== undefined) {
                 filteredGames = filteredGames.filter(
-                    (game) => game.minPlaytime >= filters.minPlayTime!
-                );
-            }
-            if (filters.maxPlayTime !== undefined) {
-                filteredGames = filteredGames.filter(
-                    (game) => game.maxPlaytime <= filters.maxPlayTime!
+
+                    (game) =>
+                        game.minPlaytime <= filters.playtime! &&
+                        game.maxPlaytime >= filters.playtime!
                 );
             }
             if (filters.playerCount !== undefined) {

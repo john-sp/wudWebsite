@@ -7,7 +7,9 @@ const ConsolegameMain = () => {
     return (
         <>
             {/*<AuthProvider>*/}
-                <p>Not Implemented</p>
+            <div className="min-h-screen p-8 pt-16">
+                <p>Coming Soon!</p>
+            </div>
                 {/*<GameManagerProvider>*/}
                 {/*    <div*/}
                 {/*        className="min-h-screen p-8 antialiased text-text-light dark:text-text-dark bg-background-light dark:bg-background-dark accent-blue-500">*/}
@@ -17,9 +19,9 @@ const ConsolegameMain = () => {
                 {/*        </div>*/}
                 {/*    </div>*/}
                 {/*</GameManagerProvider>*/}
-            {/*</AuthProvider>*/}
-        </>
-    );
-};
+                {/*</AuthProvider>*/}
+            </>
+            );
+            };
 
-export default ConsolegameMain;
+            export default ConsolegameMain;

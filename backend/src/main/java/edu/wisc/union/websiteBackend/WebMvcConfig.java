@@ -13,6 +13,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addViewControllers(ViewControllerRegistry registry) {
         // Forward all paths to index.html to handle client-side routing
         registry.addViewController("/").setViewName("forward:/index.html");
+        registry.addViewController("/board-games").setViewName("forward:/index.html");
+        registry.addViewController("/video-games").setViewName("forward:/index.html");
     }
 }
 

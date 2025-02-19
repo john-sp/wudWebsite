@@ -1,14 +1,11 @@
 import React, {useState, useEffect, useRef} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import {Pencil, Trash2, LogIn, LogOut, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, Menu, Sun, Moon} from 'lucide-react';
+import {Pencil, Trash2, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, X} from 'lucide-react';
 import {Game, GameManagerProvider, useGameManager} from "./GameManagerContext";
 import { AuthProvider,useAuth } from '@/AuthContext';
-import { setTheme } from '@/App'
-import {Alert} from "@/components/ui/alert";
 
 import {
     AlertDialog,
@@ -32,162 +29,38 @@ interface GameCardProps {
     game: Game;
 }
 
-const TopBar = () => {
-    const { auth } = useAuth();
-    const { exportFile } = useGameManager();
-    const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
-    const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
-    const [showStats, setShowStats] = useState(false);
-    const [showFilters, setShowFilters] = useState(false);
-    const [showImport, setShowImport] = useState(false);
-    const [isAddGameOpen, setIsAddGameOpen] = useState(false);
-    const [showReturnAll, setShowReturnAll] = useState(false);
-    const { addGame } = useGameManager();
-
-    const handleAddGame = async (game: Partial<Game>) => {
-        await addGame(game);
-        setIsAddGameOpen(false);
-    };
-
-    const handleAddGameClick = () => setIsAddGameOpen(true);
-    const handleExport = () => exportFile();
-    const handleReturnAll = () => setShowReturnAll(true);
-
-    const MenuItems = () => (
-        <>
-            {isAdmin && (
-                <>
-                    <DropdownMenuItem onClick={() => setShowImport(true)}>
-                        <Upload className="w-4 h-4 mr-2" /> Import
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleExport}>
-                        <Download className="w-4 h-4 mr-2" /> Export
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleAddGameClick}>
-                        <Plus className="w-4 h-4 mr-2" /> Add Game
-                    </DropdownMenuItem>
-                </>
-            )}
-            {isHost && (
-                <>
-                    <DropdownMenuItem onClick={handleReturnAll}>
-                        <RefreshCw className="w-4 h-4 mr-2" /> Return All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowStats(true)}>
-                        <BarChart className="w-4 h-4 mr-2" /> Stats
-                    </DropdownMenuItem>
-                </>
-            )}
-            <DropdownMenuItem onClick={() => setShowFilters(true)}>
-                <Filter className="w-4 h-4 mr-2" /> Filter & Sort
-            </DropdownMenuItem>
-        </>
-    );
-
-    return (
-        <div className="fixed top-0 left-0 w-full bg-menubar-light dark:bg-menubar-dark text-white px-4 py-2 flex items-center justify-between z-10 shadow-lg">
-            <div className="text-xl font-bold flex items-center">
-                <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
-                WUD Games
-            </div>
-
-            {/* Mobile Menu */}
-            <div className="md:hidden flex items-center gap-2">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                            <Menu className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 bg-gray-400">
-                        <MenuItems />
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button  variant="outline" size="icon">
-                            <Sun className="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                            <span className="sr-only">Toggle theme</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setTheme("light")}>
-                            Light
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTheme("dark")}>
-                            Dark
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTheme("auto")}>
-                            System
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <LoginButton />
-            </div>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex gap-2">
-                {isAdmin && (
-                    <>
-                        <Button variant="outline" onClick={() => setShowImport(true)} className="flex items-center gap-2">
-                            <Upload className="w-4 h-4" /> Import
-                        </Button>
-                        <Button variant="outline" onClick={handleExport} className="flex items-center gap-2">
-                            <Download className="w-4 h-4" /> Export
-                        </Button>
-                        <Button variant="outline" onClick={handleAddGameClick} className="flex items-center gap-2">
-                            <Plus className="w-4 h-4" /> Add Game
-                        </Button>
-                    </>
-                )}
-                {isHost && (
-                    <>
-                        <Button variant="outline" onClick={handleReturnAll} className="flex items-center gap-2">
-                            <RefreshCw className="w-4 h-4" /> Return All
-                        </Button>
-                        <Button variant="outline" onClick={() => setShowStats(true)} className="flex items-center gap-2">
-                            <BarChart className="w-4 h-4" /> Stats
-                        </Button>
-                    </>
-                )}
-                <Button variant="outline" onClick={() => setShowFilters(true)} className="flex items-center gap-2">
-                    <Filter className="w-4 h-4" /> Filter & Sort
+export const BoardGameNav = ({ isAdmin, isHost, onAddGame, onExport, setShowImport, setShowStats, setShowFilters, setShowReturnAll }) => (
+    <div className="flex gap-2">
+        {isAdmin && (
+            <>
+                <Button variant="outline" onClick={() => setShowImport(true)} className="flex items-center gap-2">
+                    <Upload className="w-4 h-4" /> Import Board Games
                 </Button>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button  variant="outline" size="icon">
-                            <Sun className="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                            <span className="sr-only">Toggle theme</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setTheme("light")}>
-                            Light
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTheme("dark")}>
-                            Dark
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTheme("auto")}>
-                            System
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <LoginButton />
-            </div>
+                <Button variant="outline" onClick={onExport} className="flex items-center gap-2">
+                    <Download className="w-4 h-4" /> Export Board Games
+                </Button>
+                <Button variant="outline" onClick={onAddGame} className="flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Add Board Game
+                </Button>
+            </>
+        )}
+        {isHost && (
+            <>
+                <Button variant="outline" onClick={() => setShowReturnAll(true)} className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4" /> Return All
+                </Button>
+                <Button variant="outline" onClick={() => setShowStats(true)} className="flex items-center gap-2">
+                    <BarChart className="w-4 h-4" /> Board Game Stats
+                </Button>
+            </>
+        )}
+        <Button variant="outline" onClick={() => setShowFilters(true)} className="flex items-center gap-2">
+            <Filter className="w-4 h-4" /> Filter Board Games
+        </Button>
+    </div>
+);
 
-            <StatsPopup isOpen={showStats} onClose={() => setShowStats(false)} />
-            <ReturnAllPopup isOpen={showReturnAll} onClose={() => setShowReturnAll(false)} />
-            <FilterPopup isOpen={showFilters} onClose={() => setShowFilters(false)} />
-            <ImportPopup isOpen={showImport} onClose={() => setShowImport(false)} />
-            {isAddGameOpen &&
-                <AddGamePopup onSubmit={handleAddGame} isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)}/>}
-        </div>
-    );
-};
-
-const StatsPopup = ({ isOpen, onClose }) => {
+export const StatsPopup = ({ isOpen, onClose }) => {
     const [stats, setStats] = useState(null);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -313,7 +186,7 @@ const StatsPopup = ({ isOpen, onClose }) => {
     );
 };
 
-const FilterPopup = ({ isOpen, onClose }) => {
+export const FilterPopup = ({ isOpen, onClose }) => {
     const [filters, setFilters] = useState<Filters>({
         name: "",
         genre: "",
@@ -414,7 +287,144 @@ const FilterPopup = ({ isOpen, onClose }) => {
     );
 };
 
-const ReturnAllPopup = ({isOpen, onClose}) => {
+const InlineFilters = () => {
+    const [isVisible, setIsVisible] = useState(false);
+    const [filters, setFilters] = useState({
+        name: "",
+        genre: "",
+        playtime: undefined,
+        playerCount: undefined,
+    });
+    const [sortField, setSortField] = useState("name");
+    const [sortDirection, setSortDirection] = useState("asc");
+
+    const { updateFiltersAndSort } = useGameManager();
+
+    // Update filters whenever they change
+    useEffect(() => {
+        updateFiltersAndSort(filters, { field: sortField, direction: sortDirection });
+    }, [filters, sortField, sortDirection]);
+
+    const handleClick = () => {
+        if (isVisible) {
+            // If filters are visible, clicking means we want to clear and close
+            setFilters({
+                name: "",
+                genre: "",
+                playtime: undefined,
+                playerCount: undefined,
+            });
+            setSortField("name");
+            setSortDirection("asc");
+        }
+        // Toggle visibility
+        setIsVisible(!isVisible);
+    };
+
+    return (
+        <div className="space-y-2">
+            <Button
+                variant="outline"
+                onClick={() => handleClick()}
+                className="flex items-center gap-2"
+            >
+                {isVisible ? (
+                    <>
+                        <X className="w-4 h-4" /> Clear Filters
+                    </>
+                ) : (
+                    <>
+                        <Filter className="w-4 h-4" /> Filter
+                    </>
+                )}
+            </Button>
+
+            <div className={`grid gap-4 transition-all duration-300 ease-in-out origin-top ${
+                isVisible
+                    ? 'grid-rows-[1fr] opacity-100 max-h-[500px]'
+                    : 'grid-rows-[0fr] opacity-0 max-h-0'
+            }`}>
+                <div className="overflow-hidden">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-card rounded-lg shadow-sm">
+                        {/* Filter Fields */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Name</label>
+                            <input
+                                type="text"
+                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                value={filters.name}
+                                onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                                placeholder="Search by name..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Genre</label>
+                            <input
+                                type="text"
+                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                value={filters.genre}
+                                onChange={(e) => setFilters({ ...filters, genre: e.target.value })}
+                                placeholder="Filter by genre..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Playtime</label>
+                            <input
+                                type="number"
+                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                value={filters.playtime ?? ""}
+                                onChange={(e) => setFilters({
+                                    ...filters,
+                                    playtime: e.target.value ? parseInt(e.target.value, 10) : undefined
+                                })}
+                                placeholder="Playtime..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Player Count</label>
+                            <input
+                                type="number"
+                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                value={filters.playerCount ?? ""}
+                                onChange={(e) => setFilters({
+                                    ...filters,
+                                    playerCount: e.target.value ? parseInt(e.target.value, 10) : undefined
+                                })}
+                                placeholder="Number of players..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Sort By</label>
+                            <select
+                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                value={sortField}
+                                onChange={(e) => setSortField(e.target.value)}
+                            >
+                                <option value="name">Name</option>
+                                <option value="minPlayerCount">Player Count</option>
+                                <option value="minPlaytime">Play Time</option>
+                                <option value="checkoutCount">Popularity</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Order</label>
+                            <select
+                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                value={sortDirection}
+                                onChange={(e) => setSortDirection(e.target.value)}
+                            >
+                                <option value="asc">Ascending</option>
+                                <option value="desc">Descending</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const ReturnAllPopup = ({isOpen, onClose}) => {
     const {returnAllGames} = useGameManager();
     const [stats, setStats] = useState(null);
     const [errors, setErrors] = useState(null);
@@ -471,7 +481,7 @@ const ReturnAllPopup = ({isOpen, onClose}) => {
     );
 };
 
-const ImportPopup = ({isOpen, onClose}) => {
+export const ImportPopup = ({isOpen, onClose}) => {
     const [file, setFile] = useState(null);
     const {importFile, loading} = useGameManager();
 
@@ -513,93 +523,6 @@ const ImportPopup = ({isOpen, onClose}) => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    );
-};
-
-const LoginButton = () => {
-    const { auth, login, logout, version } = useAuth();
-    const [showLogin, setShowLogin] = useState(false);
-    const [error, setError] = useState('');
-    const [credentials, setCredentials] = useState({ username: '', password: '' });
-    const loginRef = useRef(null);
-    const [appVersion, setAppVersion] = useState('Unknown');
-
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (loginRef.current && !loginRef.current.contains(event.target)) {
-                setShowLogin(false);
-                setError('');
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-        if (auth || !showLogin) {
-            setError('');
-        }
-        if (showLogin) {
-            (async () => {
-                const data = await version();
-                setAppVersion(data.version);
-
-            })();
-        }
-    }, [auth, showLogin]);
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setError('');
-        try {
-            await login(credentials.username, credentials.password);
-            setShowLogin(false);
-        } catch (error) {
-            setError(error.message);
-        }
-    };
-
-    return (
-        <div className="z-10 text-black">
-
-            {!auth ? (
-                <div className="relative" ref={loginRef}>
-                    <Button onClick={() => setShowLogin(!showLogin)} className="flex items-center gap-2">
-                        <LogIn className="w-4 h-4" /> Login
-                    </Button>
-                    {showLogin && (
-                        <div className="absolute right-0 mt-2 p-4 bg-white rounded-lg shadow-lg">
-                            <form onSubmit={handleLogin} className="flex flex-col gap-2">
-                                {error && (
-                                    <Alert variant="error" className="mb-2" description={error}>
-                                    </Alert>
-                                )}
-                                <input
-                                    type="text"
-                                    placeholder="Username"
-                                    className="p-2 border rounded"
-                                    onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="Password"
-                                    className="p-2 border rounded"
-                                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                                />
-                                <Button type="submit">Login</Button>
-                                <p className="text-xs">App version: {appVersion}</p>
-                            </form>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <Button onClick={logout} className="flex items-center gap-2">
-                    <LogOut className="w-4 h-4" /> Logout
-                </Button>
-            )}
-        </div>
     );
 };
 
@@ -732,7 +655,6 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
     );
 };
 
-
 const GamesList = () => {
         const { games, loading } = useGameManager();
 
@@ -765,21 +687,73 @@ const GamesList = () => {
 ;
 
 const BoardgameMain = () => {
+    const { auth } = useAuth();
+    const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
+    const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
+    const [showStats, setShowStats] = useState(false);
+    const [showImport, setShowImport] = useState(false);
+    const [isAddGameOpen, setIsAddGameOpen] = useState(false);
+    const [showReturnAll, setShowReturnAll] = useState(false);
+    const {exportFile, addGame} = useGameManager();
+
+    const handleExport = () => exportFile();
+    const handleAddGame = async (game: Partial<Game>) => {
+        await addGame(game);
+        setIsAddGameOpen(false);
+    };
 
     return (
-        <>
-            <AuthProvider>
-                <GameManagerProvider>
-                    <div className="min-h-screen p-8 antialiased text-text-light dark:text-text-dark bg-background-light dark:bg-background-dark accent-blue-500">
-                        <TopBar/>
-                        <div className="min-h-screen p-8 pt-16"> {/* Added pt-16 for padding */}
-                            {/*<p>Hello</p>*/}
-                            <GamesList/>
-                        </div>
-                    </div>
-                </GameManagerProvider>
-            </AuthProvider>
-        </>
+
+            <div className="min-h-screen p-8 pt-16">
+                {/* Section Controls */}
+                <div className="mb-6 flex flex-wrap gap-2">
+                    {isAdmin && (
+                        <>
+                            <Button variant="outline" onClick={() => setShowImport(true)}
+                                    className="flex items-center gap-2">
+                                <Upload className="w-4 h-4"/> Import
+                            </Button>
+                            <Button variant="outline" onClick={handleExport} className="flex items-center gap-2">
+                                <Download className="w-4 h-4"/> Export
+                            </Button>
+                            <Button variant="outline" onClick={() => setIsAddGameOpen(true)}
+                                    className="flex items-center gap-2">
+                                <Plus className="w-4 h-4"/> Add Game
+                            </Button>
+                        </>
+                    )}
+                    {isHost && (
+                        <>
+                            <Button variant="outline" onClick={() => setShowReturnAll(true)}
+                                    className="flex items-center gap-2">
+                                <RefreshCw className="w-4 h-4"/> Return All
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowStats(true)}
+                                    className="flex items-center gap-2">
+                                <BarChart className="w-4 h-4"/> Stats
+                            </Button>
+                        </>
+                    )}
+                     <InlineFilters/>
+                </div>
+
+
+                {/* Games List */}
+                <GamesList/>
+
+                {/* Popups */}
+                <StatsPopup isOpen={showStats} onClose={() => setShowStats(false)}/>
+                <ReturnAllPopup isOpen={showReturnAll} onClose={() => setShowReturnAll(false)}/>
+                {/*<FilterPopup isOpen={showFilters} onClose={() => setShowFilters(false)}/>*/}
+                <ImportPopup isOpen={showImport} onClose={() => setShowImport(false)}/>
+                {isAddGameOpen && (
+                    <AddGamePopup
+                        onSubmit={handleAddGame}
+                        isOpen={isAddGameOpen}
+                        onClose={() => setIsAddGameOpen(false)}
+                    />
+                )}
+            </div>
     );
 };
 
