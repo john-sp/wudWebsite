@@ -1,3 +1,2 @@
-Title,Quantity,Players,Time to Play,Times Checked Out,Genres,Quick Description,Notes,Box Art URL
-3 Person Chess,2,3,10-60 mins,6,Strategy,,,
-7 Wonders,1,3-7,30 mins,7,,,,,
+Name,Min Playtime,Max Playtime,Min Players,Max Players,Available Copies,Genre,Box Art URL,Description,Quantity,Checkout Count,Internal Notes
+Name,0,0,1,1,0,Genres,URL (https://),Desc,0,0,Notes

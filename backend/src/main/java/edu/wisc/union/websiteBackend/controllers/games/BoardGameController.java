@@ -232,7 +232,7 @@ public class BoardGameController {
     @GetMapping("/download-csv")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<byte[]> downloadCsv() {
-        List<BoardGame> games = boardGameRepository.findAll();
+        List<BoardGame> games = boardGameRepository.findAll(Sort.by("name"));
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream));
@@ -354,7 +354,7 @@ public class BoardGameController {
                 // Map CSV fields to the BoardGame entity
 
                 BoardGame game = new BoardGame();
-                game.setName(record.get("Title").trim());
+                game.setName(record.get("Name").trim());
 
                 if (boardGameRepository.existsByNameIgnoreCase(game.getName()))
                     continue;
@@ -367,21 +367,16 @@ public class BoardGameController {
                     // Let the error go
                 }
                 try {
-                    if (record.get("Players") != null && !record.get("Players").isBlank()) {
-                        game.setMinPlayerCount(parseMinPlayers(record.get("Players")));
-                        game.setMaxPlayerCount(parseMaxPlayers(record.get("Players")));
-                    }
-                }
-                catch (NumberFormatException e) {
+                    game.setMinPlayerCount(parseQuantity(record.get("Min Players")));
+                    game.setMaxPlayerCount(parseQuantity(record.get("Max Players")));
+                } catch (NumberFormatException e) {
                     // Let the error go
                 }
                 try {
-                    if (record.get("Time to Play") != null && !record.get("Time to Play").isBlank()) {
-                        game.setMinPlaytime(parseMinPlaytime(record.get("Time to Play")));
-                        game.setMaxPlaytime(parseMaxPlaytime(record.get("Time to Play")));
-                    }
+                    game.setMinPlaytime(parseQuantity(record.get("Min Playtime")));
+                    game.setMaxPlaytime(parseQuantity(record.get("Max Playtime")));
                 } catch (NumberFormatException e) {
-                    // Let the error go
+                    //
                 }
                 try {
                     game.setCheckoutCount(parseCheckoutCount(record.get("Times Checked Out")));
