@@ -4,10 +4,12 @@ import {Menu, Sun, Moon, GamepadIcon, LogIn, LogOut, Dice6} from 'lucide-react';
 import {AuthProvider, useAuth} from "@/AuthContext";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import {Button} from "@/components/ui/button";
-import {Alert} from "@/components/ui/alert";
+import {Alert, AlertDescription} from "@/components/ui/alert";
 import ConsolegameMain from "@/consolegames/ConsolegameMain";
 import BoardgameMain from "@/boardgames/BoardgameMain";
 import {GameManagerProvider} from "@/boardgames/GameManagerContext";
+import {Card, CardContent} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
 
 // import ConsolegameMain from "/consolegames/ConsolegameMain";
 
@@ -16,9 +18,8 @@ export const LoginButton = () => {
     const [showLogin, setShowLogin] = useState(false);
     const [error, setError] = useState('');
     const [credentials, setCredentials] = useState({ username: '', password: '' });
-    const loginRef = useRef(null);
     const [appVersion, setAppVersion] = useState('Unknown');
-
+    const loginRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -27,7 +28,6 @@ export const LoginButton = () => {
                 setError('');
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -40,7 +40,6 @@ export const LoginButton = () => {
             (async () => {
                 const data = await version();
                 setAppVersion(data.version);
-
             })();
         }
     }, [auth, showLogin]);
@@ -57,40 +56,47 @@ export const LoginButton = () => {
     };
 
     return (
-        <div className="z-10 text-black">
-
+        <div className="z-10">
             {!auth ? (
                 <div className="relative" ref={loginRef}>
-                    <Button onClick={() => setShowLogin(!showLogin)} className="flex items-center gap-2">
+                    <Button onClick={() => setShowLogin(!showLogin)} variant="default" size="sm" className="flex items-center gap-2">
                         <LogIn className="w-4 h-4" /> Login
                     </Button>
+
                     {showLogin && (
-                        <div className="absolute right-0 mt-2 p-4 bg-white rounded-lg shadow-lg">
-                            <form onSubmit={handleLogin} className="flex flex-col gap-2">
-                                {error && (
-                                    <Alert variant="error" className="mb-2" description={error}>
-                                    </Alert>
-                                )}
-                                <input
-                                    type="text"
-                                    placeholder="Username"
-                                    className="p-2 border rounded"
-                                    onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="Password"
-                                    className="p-2 border rounded"
-                                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                                />
-                                <Button type="submit">Login</Button>
-                                <p className="text-xs">App version: {appVersion}</p>
-                            </form>
-                        </div>
+                        <Card className="absolute right-0 mt-2 w-64 shadow-lg">
+                            <CardContent className="p-4">
+                                <form onSubmit={handleLogin} className="space-y-4">
+                                    {error && (
+                                        <Alert variant="destructive" className="py-2">
+                                            <AlertDescription>{error}</AlertDescription>
+                                        </Alert>
+                                    )}
+
+                                    <Input
+                                        type="text"
+                                        placeholder="Username"
+                                        onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                                    />
+
+                                    <Input
+                                        type="password"
+                                        placeholder="Password"
+                                        onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                                    />
+
+                                    <Button type="submit" className="w-full">
+                                        Login
+                                    </Button>
+
+                                    <p className="text-xs text-muted-foreground">App version: {appVersion}</p>
+                                </form>
+                            </CardContent>
+                        </Card>
                     )}
                 </div>
             ) : (
-                <Button onClick={logout} className="flex items-center gap-2">
+                <Button onClick={logout} variant="default" size="sm" className="flex items-center gap-2">
                     <LogOut className="w-4 h-4" /> Logout
                 </Button>
             )}
@@ -101,7 +107,7 @@ export const LoginButton = () => {
 
 const UnifiedTopBar = () => {
     return (
-        <div className="fixed top-0 left-0 w-full bg-menubar-light dark:bg-menubar-dark text-white px-4 py-2 z-10 shadow-lg">
+        <div className="fixed top-0 left-0 w-full bg-menubar text-white px-4 py-2 z-10 shadow-lg">
             <div className="flex items-center justify-between">
                 <div className="text-xl font-bold flex items-center">
                     <img src="/logo.png" alt="Logo" className="h-8 inline-block mr-2" />
@@ -136,7 +142,7 @@ const UnifiedTopBar = () => {
                 <div className="flex items-center gap-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
+                            <Button variant="outline" size="icon" className="bg-transparent">
                                 <Sun className="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                                 <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                                 <span className="sr-only">Toggle theme</span>
@@ -202,7 +208,7 @@ const App = () => {
     return (
         <Router>
             <AuthProvider>
-                    <div className="min-h-screen p-8 antialiased text-text-light dark:text-text-dark bg-background-light dark:bg-background-dark accent-blue-500">
+                    <div className="min-h-screen p-8 antialiased">
                         <UnifiedTopBar />
                         <Routes>
                             <Route path="/" element={<Navigate to="/board-games" replace />} />

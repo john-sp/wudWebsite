@@ -1,19 +1,16 @@
-import React from "react";
-import clsx from "clsx";
+import React from "react"
+import { cn } from "@/lib/utils"
 
 function Skeleton({
-                      className,
-                      ...props
-                  }: React.HTMLAttributes<HTMLDivElement>) {
-    return (
-        <div
-            className={clsx(
-                "animate-pulse rounded-md bg-primary/10",
-                className
-            )}
-            {...props}
-        />
-    )
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-primary/10", className)}
+      {...props}
+    />
+  )
 }
 
 export { Skeleton }

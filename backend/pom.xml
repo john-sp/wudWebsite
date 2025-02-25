@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>edu.wisc.union</groupId>
 	<artifactId>websiteBackend</artifactId>
-	<version>1.0.4</version>
+	<version>1.1.0</version>
 	<name>WUD Games Website Backend</name>
 	<description>Internal Testing Project</description>
 	<url/>

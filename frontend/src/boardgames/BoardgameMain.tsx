@@ -89,16 +89,16 @@ export const StatsPopup = ({ isOpen, onClose }) => {
 
     return  (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px] bg-background-light dark:bg-background-dark">
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle className="text-text-light dark:text-text-dark">Game Library Statistics</DialogTitle>
+                    <DialogTitle className="text-text-light">Game Library Statistics</DialogTitle>
                     <DialogDescription>
                         View statistics that we track about games over a period of time
                     </DialogDescription>
                 </DialogHeader>
                 <div className="mb-4 grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-text-light dark:text-text-dark">Start Date</label>
+                        <label className="block text-sm font-medium">Start Date</label>
                         <input
                             type="date"
                             name="startDate"
@@ -108,7 +108,7 @@ export const StatsPopup = ({ isOpen, onClose }) => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-text-light dark:text-text-dark">End Date</label>
+                        <label className="block text-sm font-medium ">End Date</label>
                         <input
                             type="date"
                             name="endDate"
@@ -121,32 +121,32 @@ export const StatsPopup = ({ isOpen, onClose }) => {
                 {stats ? (
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Total Checkouts</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.totalCheckouts}</p>
+                            <h3 className="font-bold ">Total Checkouts</h3>
+                            <p className="">{stats.totalCheckouts}</p>
                         </div>
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Most Popular Game</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.mostPopularGameName}</p>
+                            <h3 className="font-bold ">Most Popular Game</h3>
+                            <p className="">{stats.mostPopularGameName}</p>
                         </div>
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Average Games Checkout</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.averageGamesCheckout.toFixed(2)}</p>
+                            <h3 className="font-bold ">Average Games Checkout</h3>
+                            <p className="">{stats.averageGamesCheckout.toFixed(2)}</p>
                         </div>
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Most Popular Game Night</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.mostPopularGameNight}</p>
+                            <h3 className="font-bold ">Most Popular Game Night</h3>
+                            <p className="">{stats.mostPopularGameNight}</p>
                         </div>
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Average Players Per Game</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.averagePlayersPerGame.toFixed(2)}</p>
+                            <h3 className="font-bold ">Average Players Per Game</h3>
+                            <p className="">{stats.averagePlayersPerGame.toFixed(2)}</p>
                         </div>
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Average Playtime Per Game</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.averagePlaytimePerGame.toFixed(2)} mins</p>
+                            <h3 className="font-bold ">Average Playtime Per Game</h3>
+                            <p className="">{stats.averagePlaytimePerGame.toFixed(2)} mins</p>
                         </div>
                         <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
-                            <h3 className="font-bold text-text-light dark:text-text-dark">Total Available Copies</h3>
-                            <p className="text-text-light dark:text-text-dark">{stats.totalAvailableCopies}</p>
+                            <h3 className="font-bold ">Total Available Copies</h3>
+                            <p className="">{stats.totalAvailableCopies}</p>
                         </div>
                     </div>
                 ) : (
@@ -218,7 +218,7 @@ export const FilterPopup = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium">Name</label>
                         <input
                             type="text"
-                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            className="mt-1 w-full p-2 border rounded"
                             value={filters.name}
                             onChange={(e) => setFilters({ ...filters, name: e.target.value })}
                         />
@@ -227,7 +227,7 @@ export const FilterPopup = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium">Genre</label>
                         <input
                             type="text"
-                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            className="mt-1 w-full p-2 border rounded"
                             value={filters.genre}
                             onChange={(e) => setFilters({ ...filters, genre: e.target.value })}
                         />
@@ -236,7 +236,7 @@ export const FilterPopup = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium">Playtime</label>
                         <input
                             type="number"
-                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            className="mt-1 w-full p-2 border rounded"
                             value={filters.minPlaytime ?? ""}
                             onChange={(e) =>
                                 setFilters({ ...filters, minPlaytime: e.target.value ? parseInt(e.target.value, 10) : undefined })
@@ -247,7 +247,7 @@ export const FilterPopup = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium">Player Count</label>
                         <input
                             type="number"
-                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            className="mt-1 w-full p-2 border rounded"
                             value={filters.playerCount ?? ""}
                             onChange={(e) =>
                                 setFilters({ ...filters, playerCount: e.target.value ? parseInt(e.target.value, 10) : undefined })
@@ -257,7 +257,7 @@ export const FilterPopup = ({ isOpen, onClose }) => {
                     <div>
                         <label className="block text-sm font-medium">Sort By</label>
                         <select
-                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            className="mt-1 w-full p-2 border rounded"
                             value={sortField}
                             onChange={(e) => setSortField(e.target.value as "name" | "minPlayerCount" | "minPlaytime" | "checkoutCount")}
                         >
@@ -270,7 +270,7 @@ export const FilterPopup = ({ isOpen, onClose }) => {
                     <div>
                         <label className="block text-sm font-medium">Order</label>
                         <select
-                            className="mt-1 w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                            className="mt-1 w-full p-2 border rounded"
                             value={sortDirection}
                             onChange={(e) => setSortDirection(e.target.value as "asc" | "desc")}
                         >
@@ -315,7 +315,7 @@ const InlineFilters = () => {
                 playerCount: undefined,
             });
             setSortField("name");
-            setSortDirection("asc");
+            setSortDirection("desc");
         }
         // Toggle visibility
         setIsVisible(!isVisible);
@@ -351,7 +351,7 @@ const InlineFilters = () => {
                             <label className="block text-sm font-medium mb-1">Name</label>
                             <input
                                 type="text"
-                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                className="w-full p-2 border rounded"
                                 value={filters.name}
                                 onChange={(e) => setFilters({ ...filters, name: e.target.value })}
                                 placeholder="Search by name..."
@@ -361,7 +361,7 @@ const InlineFilters = () => {
                             <label className="block text-sm font-medium mb-1">Genre</label>
                             <input
                                 type="text"
-                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                className="w-full p-2 border rounded"
                                 value={filters.genre}
                                 onChange={(e) => setFilters({ ...filters, genre: e.target.value })}
                                 placeholder="Filter by genre..."
@@ -371,7 +371,7 @@ const InlineFilters = () => {
                             <label className="block text-sm font-medium mb-1">Playtime</label>
                             <input
                                 type="number"
-                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                className="w-full p-2 border rounded"
                                 value={filters.playtime ?? ""}
                                 onChange={(e) => setFilters({
                                     ...filters,
@@ -384,7 +384,7 @@ const InlineFilters = () => {
                             <label className="block text-sm font-medium mb-1">Player Count</label>
                             <input
                                 type="number"
-                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                className="w-full p-2 border rounded"
                                 value={filters.playerCount ?? ""}
                                 onChange={(e) => setFilters({
                                     ...filters,
@@ -396,7 +396,7 @@ const InlineFilters = () => {
                         <div>
                             <label className="block text-sm font-medium mb-1">Sort By</label>
                             <select
-                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                className="w-full p-2 border rounded"
                                 value={sortField}
                                 onChange={(e) => setSortField(e.target.value)}
                             >
@@ -409,7 +409,7 @@ const InlineFilters = () => {
                         <div>
                             <label className="block text-sm font-medium mb-1">Order</label>
                             <select
-                                className="w-full p-2 bg-background-light dark:bg-background-dark border rounded"
+                                className="w-full p-2 border rounded"
                                 value={sortDirection}
                                 onChange={(e) => setSortDirection(e.target.value)}
                             >
@@ -612,8 +612,9 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                         <div className="flex gap-2">
                             <Button
                                 title="Checkout Game"
-                                variant="constructive"
+                                variant="destructive"
                                 size="icon"
+                                className="bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
                                 onClick={handleCheckout}
                                 disabled={isCheckoutDisabled}
                             >
@@ -636,7 +637,7 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent
-                    className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+                    className="">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Game</AlertDialogTitle>
                         <AlertDialogDescription>

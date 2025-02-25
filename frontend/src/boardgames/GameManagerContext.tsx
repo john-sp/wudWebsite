@@ -74,18 +74,20 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
         if (filters) {
             if (filters.name) {
                 filteredGames = filteredGames.filter((game) =>
-                    game.name.toLowerCase().includes(filters.name!.toLowerCase())
+                    game.name && game.name.toLowerCase().includes(filters.name!.toLowerCase())
                 );
             }
             if (filters.genre) {
                 filteredGames = filteredGames.filter((game) =>
-                    game.genre.toLowerCase().includes(filters.genre!.toLowerCase())
+                    game.genre && game.genre.toLowerCase().includes(filters.genre!.toLowerCase())
                 );
             }
             if (filters.playtime !== undefined) {
                 filteredGames = filteredGames.filter(
 
                     (game) =>
+                        game.minPlaytime !== undefined &&
+                        game.maxPlaytime !== undefined &&
                         game.minPlaytime <= filters.playtime! &&
                         game.maxPlaytime >= filters.playtime!
                 );
@@ -93,6 +95,8 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
             if (filters.playerCount !== undefined) {
                 filteredGames = filteredGames.filter(
                     (game) =>
+                        game.minPlayerCount !== undefined &&
+                        game.maxPlayerCount !== undefined &&
                         game.minPlayerCount <= filters.playerCount! &&
                         game.maxPlayerCount >= filters.playerCount!
                 );
@@ -226,7 +230,7 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
 
     const updateFiltersAndSort = (newFilters: Filters, newSort: SortData | null) => {
         setFilters(newFilters);
-        setSortData(newSort || { field: "name", direction: "asc" }); // Keep default sort if none is provided
+        setSortData(newSort || { field: "name", direction: "desc" }); // Keep default sort if none is provided
     };
     const importFile = async (file) => {
 

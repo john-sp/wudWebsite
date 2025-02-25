@@ -8,6 +8,12 @@ import {
     DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 interface Game {
     id: number;
@@ -47,13 +53,19 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
             setFormData({});
             setSearchQuery('');
         }
-    }, [game]);
+    }, [game, isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
-            [name]: value === '' ? undefined : name.includes('PlayerCount') || name.includes('Playtime') || name === 'quantity' ? parseInt(value) : value,
+            [name]: value === ''
+                ? undefined
+                : name.includes('PlayerCount') || name.includes('Playtime') || name === 'quantity'
+                    ? parseInt(value)
+                    : value,
         });
     };
 
@@ -88,7 +100,6 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
     };
 
     const handleSelectBGGResult = async (selectedGame: any) => {
-
         try {
             const response = await fetch(`/api/bgg/details?id=${selectedGame.id}`);
             const data = await response.json();
@@ -109,179 +120,251 @@ const GamePopup: React.FC<GamePopupProps> = ({ isOpen, onClose, game, onSubmit }
             setIsSearching(false);
         }
 
-
-        setFormData((prev) => ({
-            ...prev,
-            name: selectedGame.name,
-            description: selectedGame.description || prev.description,
-        }));
         setShowBGGSearch(false);
     };
 
+    const handleDialogChange = (open: boolean) => {
+        if (!open) onClose();
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+        <Dialog open={isOpen} onOpenChange={handleDialogChange}>
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{game ? `Edit ${game.name || 'Game'}` : 'Add Game'}</DialogTitle>
-                    {showBGGSearch ? (
-                        <DialogDescription>
-                            Search for a game using BoardGameGeek. Populates name, playtime and player count.
-                        </DialogDescription>
-                        ):(
-                            <DialogDescription>
-                                Adjust fields as needed.
-                            </DialogDescription>
-                        )}
+                    <DialogDescription>
+                        {showBGGSearch
+                            ? "Search for a game using BoardGameGeek. Populates name, playtime and player count."
+                            : "Adjust fields as needed."}
+                    </DialogDescription>
                 </DialogHeader>
 
                 {showBGGSearch ? (
-                        <div>
-                            <input
+                    <div className="space-y-4">
+                        <div className="flex gap-2">
+                            <Input
                                 type="text"
                                 placeholder="Search for a game on BGG"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="p-2 w-full border rounded mb-2"
+                                className="flex-1"
                             />
                             <Button onClick={searchBGG} disabled={isSearching}>
-                                Search
-                            </Button>
-                            <ul className="mt-4 max-h-48 overflow-y-auto">
-                                {searchResults.map((result) => (
-                                    <li
-                                        key={result.id}
-                                        className="p-2 border-b cursor-pointer hover:bg-gray-100"
-                                        onClick={() => handleSelectBGGResult(result)}
-                                    >
-                                        <strong>{result.name}</strong> ({result.yearpublished})
-                                    </li>
-                                ))}
-                            </ul>
-                            <Button variant="secondary" className="mt-4" onClick={() => setShowBGGSearch(false)}>
-                                Back to Form
+                                {isSearching ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Searching
+                                    </>
+                                ) : (
+                                    "Search"
+                                )}
                             </Button>
                         </div>
-                        ) : (
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-y-2 w-full">
-                        <input
-                            type="text"
-                            placeholder="Game Name (required)"
-                            name="name"
-                            value={formData.name || ''}
-                            onChange={handleChange}
-                            required
-                            className="p-2 w-full border rounded"
-                        />
-                        <textarea
-                            placeholder="Description (optional)"
-                            name="description"
-                            value={formData.description || ''}
-                            onChange={handleChange}
-                            maxLength={1024}
-                            className="p-2 w-full border rounded resize-none overflow-hidden"
-                            rows={1}
-                            ref={(textarea) => {
-                                if (textarea) {
-                                    textarea.style.height = 'auto'; // Reset height to recalculate
-                                    textarea.style.height = `${textarea.scrollHeight}px`; // Adjust to content
-                                }
-                            }}
-                            onInput={(e) => {
-                                const target = e.target as HTMLTextAreaElement;
-                                target.style.height = 'auto'; // Reset height to recalculate
-                                target.style.height = `${target.scrollHeight}px`; // Adjust to content
-                            }}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Genre (optional)"
-                            name="genre"
-                            value={formData.genre || ''}
-                            onChange={handleChange}
-                            maxLength={256}
-                            className="p-2 w-full border rounded"
-                        />
-                        <div className="grid grid-cols-2 gap-2 w-full">
-                            <input
-                                type="number"
-                                placeholder="Minimum Players"
-                                name="minPlayerCount"
-                                value={formData.minPlayerCount != undefined ? formData.minPlayerCount.toString() : ''}
-                                onChange={handleChange}
-                                min="0"
-                                className="p-2 border rounded"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Maximum Players"
-                                name="maxPlayerCount"
-                                value={formData.maxPlayerCount != undefined ? formData.maxPlayerCount.toString() : ''}
-                                onChange={handleChange}
-                                min="0"
-                                className="p-2 border rounded"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 w-full">
-                            <input
-                                type="number"
-                                placeholder="Minimum Playtime"
-                                name="minPlaytime"
-                                value={formData.minPlaytime != undefined ? formData.minPlaytime.toString() : ''}
-                                onChange={handleChange}
-                                min="0"
-                                className="p-2 border rounded"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Maximum Playtime"
-                                name="maxPlaytime"
-                                value={(formData.maxPlaytime != undefined) ? formData.maxPlaytime.toString() : ''}
-                                onChange={handleChange}
-                                min="0"
-                                className="p-2 border rounded"
-                            />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Box Image URL (optional)"
-                            name="boxImageUrl"
-                            value={formData.boxImageUrl || ''}
-                            onChange={handleChange}
-                            className="p-2 w-full border rounded"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Quantity (optional)"
-                            name="quantity"
-                            value={formData.quantity != undefined ? formData.quantity.toString() : ''}
-                            onChange={handleChange}
-                            min="0"
-                            className="p-2 w-full border rounded"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Internal Notes (optional)"
-                            name="internalNotes"
-                            value={formData.internalNotes || ''}
-                            onChange={handleChange}
-                            className="p-2 w-full border rounded"
-                        />
+
+                        {searchResults.length > 0 ? (
+                            <Card className="p-0 overflow-hidden">
+                                <div className="max-h-48 overflow-y-auto">
+                                    <ul className="divide-y">
+                                        {searchResults.map((result) => (
+                                            <li
+                                                key={result.id}
+                                                className="px-4 py-2 cursor-pointer hover:bg-muted transition-colors"
+                                                onClick={() => handleSelectBGGResult(result)}
+                                            >
+                                                <div className="font-medium">{result.name}</div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {result.yearpublished}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </Card>
+                        ) : isSearching ? (
+                            <div className="text-center py-4 text-muted-foreground">
+                                Searching BoardGameGeek...
+                            </div>
+                        ) : searchQuery && !isSearching ? (
+                            <div className="text-center py-4 text-muted-foreground">
+                                No results found. Try a different search term.
+                            </div>
+                        ) : null}
+
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => setShowBGGSearch(false)}
+                        >
+                            Back to Form
+                        </Button>
                     </div>
-                    {error && <p className="text-red-500">{error}</p>}
-                    <DialogFooter className="mt-4">
-                        <Button type="button" variant="secondary" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="button" variant="secondary" onClick={() => setShowBGGSearch(true)}>
-                            Match from BGG
-                        </Button>
-                        <Button type="submit" disabled={isLoading} loading={isLoading}>
-                            {game ? 'Save' : 'Add'}
-                        </Button>
-                    </DialogFooter>
-                </form>
-                    )}
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Game Name</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    placeholder="Game Name (required)"
+                                    name="name"
+                                    value={formData.name || ''}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea
+                                    id="description"
+                                    placeholder="Description (optional)"
+                                    name="description"
+                                    value={formData.description || ''}
+                                    onChange={handleChange}
+                                    maxLength={1024}
+                                    className="resize-none min-h-20"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="genre">Genre</Label>
+                                <Input
+                                    id="genre"
+                                    type="text"
+                                    placeholder="Genre (optional)"
+                                    name="genre"
+                                    value={formData.genre || ''}
+                                    onChange={handleChange}
+                                    maxLength={256}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="minPlayerCount">Min Players</Label>
+                                    <Input
+                                        id="minPlayerCount"
+                                        type="number"
+                                        placeholder="Minimum Players"
+                                        name="minPlayerCount"
+                                        value={formData.minPlayerCount != undefined ? formData.minPlayerCount.toString() : ''}
+                                        onChange={handleChange}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="maxPlayerCount">Max Players</Label>
+                                    <Input
+                                        id="maxPlayerCount"
+                                        type="number"
+                                        placeholder="Maximum Players"
+                                        name="maxPlayerCount"
+                                        value={formData.maxPlayerCount != undefined ? formData.maxPlayerCount.toString() : ''}
+                                        onChange={handleChange}
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="minPlaytime">Min Time (min)</Label>
+                                    <Input
+                                        id="minPlaytime"
+                                        type="number"
+                                        placeholder="Minimum Playtime"
+                                        name="minPlaytime"
+                                        value={formData.minPlaytime != undefined ? formData.minPlaytime.toString() : ''}
+                                        onChange={handleChange}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="maxPlaytime">Max Time (min)</Label>
+                                    <Input
+                                        id="maxPlaytime"
+                                        type="number"
+                                        placeholder="Maximum Playtime"
+                                        name="maxPlaytime"
+                                        value={formData.maxPlaytime != undefined ? formData.maxPlaytime.toString() : ''}
+                                        onChange={handleChange}
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="boxImageUrl">Box Image URL</Label>
+                                <Input
+                                    id="boxImageUrl"
+                                    type="text"
+                                    placeholder="Box Image URL (optional)"
+                                    name="boxImageUrl"
+                                    value={formData.boxImageUrl || ''}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="quantity">Quantity</Label>
+                                <Input
+                                    id="quantity"
+                                    type="number"
+                                    placeholder="Quantity (optional)"
+                                    name="quantity"
+                                    value={formData.quantity != undefined ? formData.quantity.toString() : ''}
+                                    onChange={handleChange}
+                                    min="0"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="internalNotes">Internal Notes</Label>
+                                <Input
+                                    id="internalNotes"
+                                    type="text"
+                                    placeholder="Internal Notes (optional)"
+                                    name="internalNotes"
+                                    value={formData.internalNotes || ''}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between">
+                            <div className="w-full flex justify-between gap-2">
+                                <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShowBGGSearch(true)}
+                                    className="flex-1"
+                                >
+                                    Match from BGG
+                                </Button>
+                            </div>
+                            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        {game ? 'Saving...' : 'Adding...'}
+                                    </>
+                                ) : (
+                                    game ? 'Save' : 'Add'
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                )}
             </DialogContent>
         </Dialog>
     );

@@ -1,47 +1,59 @@
-import React from "react";
-import clsx from "clsx";
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: "info" | "warning" | "error" | "success";
-    title?: string;
-}
+import { cn } from "@/lib/utils"
 
-export const Alert: React.FC<AlertProps> = ({
-                                                children,
-                                                variant = "info",
-                                                title,
-                                                description,
-                                                className,
-                                                ...props
-                                            }) => {
-    return (
-        <div
-            className={clsx(
-                "p-4 rounded-md border",
-                variant === "info" && "bg-blue-50 border-blue-200 text-blue-700",
-                variant === "warning" && "bg-yellow-50 border-yellow-200 text-yellow-700",
-                variant === "error" && "bg-red-50 border-red-200 text-red-700",
-                variant === "success" && "bg-green-50 border-green-200 text-green-700",
-                className
-            )}
-            role="alert"
-            {...props}
-        >
-            {title && (
-                <h3 className={clsx(
-                    "font-semibold mb-2",
-                    variant === "info" && "text-blue-800",
-                    variant === "warning" && "text-yellow-800",
-                    variant === "error" && "text-red-800",
-                    variant === "success" && "text-green-800"
-                )}>
-                    {title}
-                </h3>
-            )}
-            {description && (
-                <p className="text-sm mb-2">{description}</p>
-            )}
-            <div className="text-sm">{children}</div>
-        </div>
-    );
-};
+const alertVariants = cva(
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  {
+    variants: {
+      variant: {
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
+>(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props}
+  />
+))
+Alert.displayName = "Alert"
+
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+AlertTitle.displayName = "AlertTitle"
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+))
+AlertDescription.displayName = "AlertDescription"
+
+export { Alert, AlertTitle, AlertDescription }
