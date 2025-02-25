@@ -33,18 +33,12 @@ const ConsoleGameCard: React.FC<ConsoleGameCardProps> = ({game}) => {
     const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
     const {deleteGame, updateGame} = useConsoleContext();
 
-    const handleEditGame = async (updatedGame: ConsoleGame) => {
-        if (!editingGame) return;
-        await updateGame(game.id, updatedGame);
-        setEditingGame(null);
-    };
-
     const handleDelete = async () => {
         deleteGame(game.id);
     };
 
     const closeEditPopup = () => {
-        setEditingGame(null);
+        setEditingGame(false);
     };
 
     return (
@@ -52,8 +46,11 @@ const ConsoleGameCard: React.FC<ConsoleGameCardProps> = ({game}) => {
             <Card className={`w-full max-w-sm relative flex flex-row  ${isHost ? "pb-12" : ""}`}>
                 <div className="w-2/3 p-2 text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
-                    <div className="max-h-16 overflow-y-auto">
+                    <div className="max-h-32 overflow-y-auto">
                         <p className="mt-2 text-xs">{game.description}</p>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Available on: {game.consoles.map((c) => c.name).join(", ") || "N/A"}
                     </div>
                 </div>
                 <div className="relative w-1/3">
