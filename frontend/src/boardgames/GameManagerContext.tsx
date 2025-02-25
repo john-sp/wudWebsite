@@ -105,7 +105,7 @@ export const GameManagerProvider: React.FC<GameManagerProps> = ({ children }) =>
 
         // Apply client-side sorting
         if (sortData) {
-            console.log(sortData);
+            // console.log(sortData);
             const { field, direction } = sortData;
             filteredGames.sort((a, b) => {
                 const valueA = a[field];
