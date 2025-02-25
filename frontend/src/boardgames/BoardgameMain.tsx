@@ -18,6 +18,9 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {AddGamePopup, EditGamePopup} from "@/boardgames/GamePopups";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 interface Filters {
     name: string;
@@ -98,84 +101,84 @@ export const StatsPopup = ({ isOpen, onClose }) => {
                 </DialogHeader>
                 <div className="mb-4 grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium">Start Date</label>
-                        <input
+                        <Label>Start Date</Label>
+                        <Input
                             type="date"
                             name="startDate"
                             value={startDate}
                             onChange={handleDateChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm"
+                            className="mt-1 block w-full"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium ">End Date</label>
-                        <input
+                        <Label>End Date</Label>
+                        <Input
                             type="date"
                             name="endDate"
                             value={endDate}
                             onChange={handleDateChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm"
+                            className="mt-1 block w-full"
                         />
                     </div>
                 </div>
                 {stats ? (
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Total Checkouts</h3>
                             <p className="">{stats.totalCheckouts}</p>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Most Popular Game</h3>
                             <p className="">{stats.mostPopularGameName}</p>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Average Games Checkout</h3>
                             <p className="">{stats.averageGamesCheckout.toFixed(2)}</p>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Most Popular Game Night</h3>
                             <p className="">{stats.mostPopularGameNight}</p>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Average Players Per Game</h3>
                             <p className="">{stats.averagePlayersPerGame.toFixed(2)}</p>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Average Playtime Per Game</h3>
                             <p className="">{stats.averagePlaytimePerGame.toFixed(2)} mins</p>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <h3 className="font-bold ">Total Available Copies</h3>
                             <p className="">{stats.totalAvailableCopies}</p>
                         </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
-                        <div className="p-4 bg-popover-light dark:bg-popover-dark rounded">
+                        <div className="p-4 bg-popover rounded">
                             <Skeleton className="h-6 w-32"/>
                             <Skeleton className="h-4 w-24 mt-2"/>
                         </div>
@@ -315,7 +318,7 @@ const InlineFilters = () => {
                 playerCount: undefined,
             });
             setSortField("name");
-            setSortDirection("desc");
+            setSortDirection("asc");
         }
         // Toggle visibility
         setIsVisible(!isVisible);
@@ -348,30 +351,27 @@ const InlineFilters = () => {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-card rounded-lg shadow-sm">
                         {/* Filter Fields */}
                         <div>
-                            <label className="block text-sm font-medium mb-1">Name</label>
-                            <input
+                            <Label>Name</Label>
+                            <Input
                                 type="text"
-                                className="w-full p-2 border rounded"
                                 value={filters.name}
                                 onChange={(e) => setFilters({ ...filters, name: e.target.value })}
                                 placeholder="Search by name..."
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Genre</label>
-                            <input
+                            <Label>Genre</Label>
+                            <Input
                                 type="text"
-                                className="w-full p-2 border rounded"
                                 value={filters.genre}
                                 onChange={(e) => setFilters({ ...filters, genre: e.target.value })}
                                 placeholder="Filter by genre..."
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Playtime</label>
-                            <input
+                            <Label>Playtime</Label>
+                            <Input
                                 type="number"
-                                className="w-full p-2 border rounded"
                                 value={filters.playtime ?? ""}
                                 onChange={(e) => setFilters({
                                     ...filters,
@@ -381,10 +381,9 @@ const InlineFilters = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Player Count</label>
-                            <input
+                            <Label className="block text-sm font-medium mb-1">Player Count</Label>
+                            <Input
                                 type="number"
-                                className="w-full p-2 border rounded"
                                 value={filters.playerCount ?? ""}
                                 onChange={(e) => setFilters({
                                     ...filters,
@@ -394,28 +393,30 @@ const InlineFilters = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Sort By</label>
-                            <select
-                                className="w-full p-2 border rounded"
-                                value={sortField}
-                                onChange={(e) => setSortField(e.target.value)}
-                            >
-                                <option value="name">Name</option>
-                                <option value="minPlayerCount">Player Count</option>
-                                <option value="minPlaytime">Play Time</option>
-                                <option value="checkoutCount">Popularity</option>
-                            </select>
+                            <Label>Sort By</Label>
+                            <Select value={sortField} onValueChange={setSortField}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="name">Name</SelectItem>
+                                    <SelectItem value="minPlayerCount">Player Count</SelectItem>
+                                    <SelectItem value="minPlaytime">Play Time</SelectItem>
+                                    <SelectItem value="checkoutCount">Popularity</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Order</label>
-                            <select
-                                className="w-full p-2 border rounded"
-                                value={sortDirection}
-                                onChange={(e) => setSortDirection(e.target.value)}
-                            >
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
-                            </select>
+                            <Label>Order</Label>
+                            <Select value={sortDirection} onValueChange={setSortDirection}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select order" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="asc">Ascending</SelectItem>
+                                    <SelectItem value="desc">Descending</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>
