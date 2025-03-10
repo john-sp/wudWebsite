@@ -321,25 +321,18 @@ const InlineFilters = () => {
             setSortDirection("asc");
         }
         // Toggle visibility
-        setIsVisible(!isVisible);
     };
 
     return (
         <div className="space-y-2">
             <Button
                 variant="outline"
-                onClick={() => handleClick()}
+                onClick={() => setIsVisible(!isVisible)}
                 className="flex items-center gap-2"
             >
-                {isVisible ? (
-                    <>
-                        <X className="w-4 h-4" /> Clear Filters
-                    </>
-                ) : (
                     <>
                         <Filter className="w-4 h-4" /> Filter
                     </>
-                )}
             </Button>
 
             <div className={`grid gap-4 transition-all duration-300 ease-in-out origin-top ${
@@ -417,6 +410,17 @@ const InlineFilters = () => {
                                     <SelectItem value="desc">Descending</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+                        <div>
+                            <Button
+                                variant="outline"
+                                onClick={() => handleClick()}
+                                className="flex items-center gap-2"
+                            >
+                                <>
+                                    <X className="w-4 h-4" /> Clear Filters
+                                </>
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {AuthProvider, useAuth} from "@/AuthContext";
 import {ConsoleGame, ConsoleProvider, useConsoleContext} from "@/consolegames/ConsoleGameManagerContext";
-import {Card, CardContent, CardHeader} from "@/components/ui/card";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
-import {Download, Pencil, Plus, Trash2, Upload} from "lucide-react";
+import {Monitor, Pencil, Plus, Trash2} from "lucide-react";
 
 import {
     AlertDialog,
@@ -43,30 +43,34 @@ const ConsoleGameCard: React.FC<ConsoleGameCardProps> = ({game}) => {
 
     return (
         <>
-            <Card className={`w-full max-w-sm relative flex flex-row  ${isHost ? "pb-12" : ""}`}>
-                <div className="w-2/3 p-2 text-left">
-                    <h3 className="text-lg font-bold">{game.name}</h3>
-                    <div className="max-h-32 overflow-y-auto">
+            <Card className={`w-full max-w-sm relative flex flex-col ${isHost ? "pb-12" : ""}`}>
+                <CardTitle className="relative w-full">
+
+                        <div className="relative w-full overflow-hidden">
+                            {game.boxImageUrl && (
+                            <img
+                                src={game.boxImageUrl || "/api/placeholder/200/200"}
+                                alt={game.name}
+                                className="w-full aspect-[2.7] object-cover rounded-t-lg"
+                            />
+                            )}
+                            <div
+                                className="absolute bottom-0 w-full bg-gray-900 bg-opacity-75 p-1 text-white text-center">
+                                <h4 className="text-md font-bold">{game.name}</h4>
+                            </div>
+                        </div>
+
+                </CardTitle>
+                <CardContent className="flex flex-col justify-between flex-1 p-2">
+                    <div className="max-h-12 overflow-y-auto">
                         <p className="mt-2 text-xs">{game.description}</p>
                     </div>
                     <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                         Available on: {game.consoles.map((c) => c.name).join(", ") || "N/A"}
                     </div>
-                </div>
-                <div className="relative w-1/3">
-                    {game.boxImageUrl && (
-                        <img
-                            src={game.boxImageUrl || "/api/placeholder/200/200"}
-                            alt={game.name}
-                            className="w-full max-h-[85%] object-cover rounded-tr-lg text-center"
-                        />)}
-                </div>
-
-                {isAdmin && (
-                    <div
-                        className="absolute bottom-0 rounded-tl-md right-0 px-2 py-2 border-t border-l flex justify-between gap-2">
-
-                        <div className="flex gap-2">
+                    {isAdmin && (
+                        <div
+                            className="absolute bottom-0 right-0 px-2 py-2 border-t border-l flex gap-2 rounded-tl-md">
                             <Button variant="outline" size="icon" onClick={() => setEditingGame(true)}>
                                 <Pencil className="w-4 h-4"/>
                             </Button>
@@ -74,16 +78,14 @@ const ConsoleGameCard: React.FC<ConsoleGameCardProps> = ({game}) => {
                                 <Trash2 className="w-4 h-4"/>
                             </Button>
                         </div>
-
-                    </div>
-                )}
+                    )}
+                </CardContent>
             </Card>
             {editingGame && (
                 <GamePopup gameToEdit={game} onClose={closeEditPopup} isOpen={editingGame}/>
             )}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent
-                    className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+                <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Game</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -136,7 +138,7 @@ const ConsoleGamesList = () => {
 
 // TODO: Replace game manager
 const ConsolegameMain = () => {
-    const { auth } = useAuth();
+    const {auth} = useAuth();
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
     const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
 

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "consoleGames")
@@ -21,8 +21,8 @@ public class ConsoleGame {
     private String name;
     private String boxImageUrl;
 
-    @ManyToMany
-    private Set<Console> consoles;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Console> consoles;
 
     @Column(length = 1024, columnDefinition = "VARCHAR(1024)")
     @Size(max = 1024)

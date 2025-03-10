@@ -14,7 +14,6 @@ export interface ConsoleGame {
     boxImageUrl: string;
     consoles: Console[];
     description: string;
-    internalNotes: string;
 }
 
 interface ConsoleContextType {
