@@ -20,6 +20,14 @@ public class ConsoleGame {
 
     private String name;
     private String boxImageUrl;
+    private String releaseDate;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "console_game_console_genre",
+               joinColumns = @JoinColumn(name = "console_game_id"),
+               inverseJoinColumns = @JoinColumn(name = "console_genre_id"))
+    private List<ConsoleGenre> genres;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Console> consoles;

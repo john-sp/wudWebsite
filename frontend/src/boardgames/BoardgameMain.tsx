@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {Pencil, Trash2, Plus, Minus, BarChart, RefreshCw, Filter, Upload, Download, X} from 'lucide-react';
 import {Game, GameManagerProvider, useGameManager} from "./GameManagerContext";
@@ -536,6 +536,7 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
     const { deleteGame, checkout, returnGame, updateGame } = useGameManager();
     const [editingGame, setEditingGame] = useState<Game | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showInfoDialog, setShowInfoDialog] = useState(false);
     const isAdmin = auth?.authenticationLevel.toLowerCase() === 'admin';
     const isHost = isAdmin || auth?.authenticationLevel.toLowerCase() === 'host';
 
@@ -571,7 +572,10 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
     return (
         <>
-            <Card className={`w-full max-w-sm relative flex flex-row  ${isHost ? "pb-12" : ""}`}>
+            <Card
+                className={`w-full max-w-sm relative flex flex-row ${isHost ? "pb-12" : ""} cursor-pointer`}
+                onClick={() => setShowInfoDialog(true)}
+            >
                 <div className="w-2/3 p-2 text-left">
                     <h3 className="text-lg font-bold">{game.name}</h3>
                     <p className="text-sm">
@@ -580,36 +584,33 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                         | {game.minPlaytime}
                         {game.minPlaytime !== game.maxPlaytime && `-${game.maxPlaytime}`} minutes
                     </p>
-                    <div className="max-h-16 overflow-y-auto">
-                        <p className="mt-2 text-xs">{game.description}</p>
-                    </div>
                     <p className="mt-2 text-sm">Genre: {game.genre}</p>
                     <p className="text-sm">Available: {game.availableCopies} / {game.quantity}</p>
-                    {isHost && (
-                        <>
-                            <p className="text-sm">Times Checked Out: {game.checkoutCount}</p>
-                            <p className="mt-2 text-sm italic">{game.internalNotes}</p>
-                        </>
-                    )}
                 </div>
                 <div className="relative w-1/3">
                     {game.boxImageUrl && (
                         <img
                             src={game.boxImageUrl || "/api/placeholder/200/200"}
                             alt={game.name}
-                            className="w-full max-h-[85%] object-cover rounded-tr-lg text-center"
-                        />)}
+                            className="w-full h-40 object-contain rounded-tr-lg"
+                        />
+                    )}
                 </div>
 
                 {isHost && (
-                    <div
-                        className="absolute bottom-0 rounded-tl-md right-0 px-2 py-2 border-t border-l flex justify-between gap-2">
+                    <div className="absolute bottom-0 rounded-tl-md right-0 px-2 py-2 border-t border-l flex justify-between gap-2">
                         {isAdmin && (
                             <div className="flex gap-2">
-                                <Button variant="outline" size="icon" onClick={() => openEditPopup(game)}>
+                                <Button variant="outline" size="icon" onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditPopup(game);
+                                }}>
                                     <Pencil className="w-4 h-4"/>
                                 </Button>
-                                <Button variant="outline" size="icon" onClick={() => setShowDeleteDialog(true)}>
+                                <Button variant="outline" size="icon" onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowDeleteDialog(true);
+                                }}>
                                     <Trash2 className="w-4 h-4"/>
                                 </Button>
                             </div>
@@ -620,7 +621,10 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                                 variant="destructive"
                                 size="icon"
                                 className="bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
-                                onClick={handleCheckout}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCheckout();
+                                }}
                                 disabled={isCheckoutDisabled}
                             >
                                 <Plus className="w-4 h-4"/>
@@ -629,7 +633,10 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                                 title="Return Game"
                                 variant="destructive"
                                 size="icon"
-                                onClick={handleReturn}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReturn();
+                                }}
                                 disabled={isReturnDisabled}
                             >
                                 <Minus className="w-4 h-4"/>
@@ -638,11 +645,71 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                     </div>
                 )}
             </Card>
-            <EditGamePopup game={editingGame} onSubmit={handleEditGame} onClose={closeEditPopup} isOpen={editingGame}/>
+
+            {/* Game Info Dialog */}
+            <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+                <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl">{game.name}</DialogTitle>
+                        <div className="flex gap-4 text-sm text-muted-foreground">
+                            <span>
+                                {game.minPlayerCount}
+                                {game.minPlayerCount !== game.maxPlayerCount && `-${game.maxPlayerCount}`} players
+                            </span>
+                            <span>
+                                {game.minPlaytime}
+                                {game.minPlaytime !== game.maxPlaytime && `-${game.maxPlaytime}`} minutes
+                            </span>
+                            <span>Genre: {game.genre}</span>
+                        </div>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-y-auto">
+                        <div className="md:col-span-2 space-y-4">
+                            <div>
+                                <h4 className="font-semibold text-lg">Description</h4>
+                                <p className="mt-1">{game.description}</p>
+                            </div>
+                            {isHost && (
+                                <>
+                                    <div>
+                                        <h4 className="font-semibold text-lg">Internal Notes</h4>
+                                        <p className="mt-1 italic">{game.internalNotes}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <h4 className="font-semibold text-lg">Availability</h4>
+                                            <p className="mt-1 text-muted-foreground">{game.availableCopies} / {game.quantity} available</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-lg font-semibold">Times Checked Out</h4>
+                                            <p className="mt-1 text-muted-foreground">{game.checkoutCount}</p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div className="flex justify-center">
+                            {game.boxImageUrl && (
+                                <img
+                                    src={game.boxImageUrl}
+                                    alt={game.name}
+                                    className="w-full max-h-64 object-contain rounded-lg"
+                                />
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="outline">Close</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <EditGamePopup game={editingGame} onSubmit={handleEditGame} onClose={closeEditPopup} isOpen={Boolean(editingGame)}/>
 
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent
-                    className="">
+                <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Game</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -651,7 +718,10 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="text-white bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                        >
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -665,7 +735,7 @@ const GamesList = () => {
         const { games, loading } = useGameManager();
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-2 gap-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                 {loading ? (
                         <Card className="w-full max-w-sm">
                             <CardHeader className="relative">

@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>edu.wisc.union</groupId>
 	<artifactId>websiteBackend</artifactId>
-	<version>1.1.2</version>
+	<version>1.2.0</version>
 	<name>WUD Games Website Backend</name>
 	<description>Internal Testing Project</description>
 	<url/>
@@ -96,12 +96,6 @@
 			<artifactId>lombok</artifactId>
 			<scope>annotationProcessor</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.restdocs</groupId>
-			<artifactId>spring-restdocs-mockmvc</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 
 		<!-- Needed for OAS 3 to Swagger Docs -->
 		<dependency>
@@ -122,11 +116,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -64,6 +64,12 @@ public class ConsoleSearchObjects {
         private String short_description;
         private String header_image;
         private List<Genre> genres;
+        private ReleaseDate release_date;
+
+        @Data
+        public static class ReleaseDate {
+            private String date;
+        }
 
         @Data
         public static class Genre {

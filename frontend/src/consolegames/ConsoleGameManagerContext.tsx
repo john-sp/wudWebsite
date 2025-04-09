@@ -3,7 +3,12 @@ import {useAuth} from '@/AuthContext';
 
 const API_BASE_URL = "/api/consoles";
 
-interface Console {
+export interface Console { // Added export
+    id: number;
+    name: string;
+}
+
+export interface ConsoleGenre {
     id: number;
     name: string;
 }
@@ -12,6 +17,8 @@ export interface ConsoleGame {
     id: number;
     name: string;
     boxImageUrl: string;
+    genres: ConsoleGenre[];
+    releaseDate: string;
     consoles: Console[];
     description: string;
 }
@@ -19,15 +26,28 @@ export interface ConsoleGame {
 interface ConsoleContextType {
     consoles: Console[];
     games: ConsoleGame[];
+    allGenres: ConsoleGenre[];
     loading: boolean;
     fetchConsoles: () => void;
     fetchGames: () => void;
+    fetchGenres: () => void;
     createConsole: (console: Console) => void;
     updateConsole: (id: number, console: Console) => void;
     deleteConsole: (id: number) => void;
-    createGame: (game: ConsoleGame) => void;
-    updateGame: (id: number, game: ConsoleGame) => void;
+    createGame: (payload: ConsoleGamePayload) => Promise<void>; // Changed type to payload and return Promise
+    updateGame: (id: number, payload: ConsoleGamePayload) => Promise<void>; // Changed type to payload and return Promise
     deleteGame: (id: number) => void;
+}
+
+// Interface for the payload sent to create/update endpoints
+export interface ConsoleGamePayload {
+    name: string;
+    boxImageUrl?: string; // Optional fields marked
+    description?: string;
+    releaseDate?: string;
+    consoleIds: number[];
+    genreIds: number[];
+    newGenreNames: string[];
 }
 
 const ConsoleContext = createContext<ConsoleContextType | undefined>(undefined);
@@ -48,6 +68,7 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({childr
     const {auth} = useAuth();
     const [consoles, setConsoles] = useState<Console[]>([]);
     const [games, setGames] = useState<ConsoleGame[]>([]);
+    const [allGenres, setAllGenres] = useState<ConsoleGenre[]>([]);
     const [loading, setLoading] = useState(false);
 
     const fetchConsoles = async () => {
@@ -86,6 +107,24 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({childr
         }
     };
 
+    const fetchGenres = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/genres`, {
+                headers: auth ? { Authorization: `Bearer ${auth.token}` } : {},
+            });
+            if (response.ok) {
+                setAllGenres(await response.json());
+            } else {
+                console.error("Failed to fetch genres");
+            }
+        } catch (error) {
+            console.error("Error fetching genres:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const createConsole = async (console: Console) => {
         await fetch(`${API_BASE_URL}`, {
             method: "POST",
@@ -118,28 +157,36 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({childr
         fetchConsoles();
     };
 
-    const createGame = async (game: ConsoleGame) => {
-        await fetch(`${API_BASE_URL}/games`, {
+    const createGame = async (payload: ConsoleGamePayload) => { // Changed type to payload
+        const response = await fetch(`${API_BASE_URL}/games`, { // Added response handling
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${auth?.token}`,
             },
-            body: JSON.stringify(game),
+            body: JSON.stringify(payload), // Send payload
         });
+        if (!response.ok) { // Added error handling
+            throw new Error(`Failed to create game: ${response.statusText}`);
+        }
         fetchGames();
+        await fetchGenres(); // Refetch genres in case new ones were added
     };
 
-    const updateGame = async (id: number, game: ConsoleGame) => {
-        await fetch(`${API_BASE_URL}/games/${id}`, {
+    const updateGame = async (id: number, payload: ConsoleGamePayload) => { // Changed type to payload
+        const response = await fetch(`${API_BASE_URL}/games/${id}`, { // Added response handling
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${auth?.token}`,
             },
-            body: JSON.stringify(game),
+            body: JSON.stringify(payload), // Send payload
         });
-        fetchGames();
+        if (!response.ok) { // Added error handling
+            throw new Error(`Failed to update game: ${response.statusText}`);
+        }
+        await fetchGames(); // Ensure games list is updated
+        await fetchGenres(); // Refetch genres in case new ones were added
     };
 
     const deleteGame = async (id: number) => {
@@ -153,15 +200,18 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({childr
     useEffect(() => {
         fetchConsoles();
         fetchGames();
+        fetchGenres();
     }, [auth]);
 
     return (
         <ConsoleContext.Provider value={{
             consoles,
             games,
+            allGenres,
             loading,
             fetchConsoles,
             fetchGames,
+            fetchGenres,
             createConsole,
             updateConsole,
             deleteConsole,
